@@ -1,0 +1,30 @@
+# Python virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Python compiled bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment configuration (NEVER commit secrets!)
+.env
+.env.*
+
+# Local data files and documents
+data/*
+!data/.gitkeep
+
+# Generated output files
+outputs/*
+!outputs/.gitkeep
+
+# Node packages (in case a frontend/UI is added in the future)
+node_modules/
+
+# OS metadata
+.DS_Store
+Thumbs.db
