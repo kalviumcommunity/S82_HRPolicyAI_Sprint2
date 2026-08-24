@@ -36,7 +36,7 @@ rag-app-starter/
 ## Prerequisites
 
 - **Python**: Version 3.8 to 3.12 (recommended) installed on Windows. Ensure Python is added to your system `PATH`.
-- **Git**: Installed and configured.
+- **Git**: Installed and configured....
 
 ---
 
@@ -123,7 +123,6 @@ Environment Configuration Status:
 
 HRPolicyAI environment is ready.
 ```
-
 ---
 
 ## Security Guidelines
