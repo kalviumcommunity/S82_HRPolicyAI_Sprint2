@@ -21,6 +21,8 @@ data/*
 # Generated output files
 outputs/*
 !outputs/.gitkeep
+!outputs/prompt_comparison.md
+!outputs/comparison_results.json
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
