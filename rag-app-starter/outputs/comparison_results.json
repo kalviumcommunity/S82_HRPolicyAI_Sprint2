@@ -1,0 +1,34 @@
+[
+  {
+    "id": "vague_prompt",
+    "description": "Vague and unconstrained user prompt",
+    "system_prompt": "You are a helpful assistant.",
+    "user_prompt": "Tell me about leave.",
+    "response": "Leave can refer to a variety of time-off policies including paid time off (PTO), sick leave, parental leave, bereavement, and unpaid leave of absence. Depending on your organization's handbook, full-time employees typically accrue 10-25 days per year, and requests must be submitted through your portal.",
+    "usage": {}
+  },
+  {
+    "id": "structured_prompt",
+    "description": "Clear, specific, and constrained prompt with defined task, scope, format, and fallback",
+    "system_prompt": "Role: You are an internal HR Policy Assistant for company employees.\nScope: Answer questions strictly based on official company HR policies (e.g., leave, benefits, working hours, code of conduct). Do NOT answer personal, financial, legal, or non-HR questions.\nConstraints:\n- Keep answers concise, factual, and strictly under 3 sentences unless bullet points are requested.\n- Maintain a professional, supportive, and objective tone.\n- Avoid speculation or fabricating policies.\nFallback: If the question is outside HR scope or the necessary policy information is missing/uncertain, respond with: 'I do not have sufficient policy information to answer this question. Please contact HR at hr-support@company.internal for assistance.'",
+    "user_prompt": "In exactly 2 bullet points, summarize the standard paid annual leave policy for full-time employees. If information is not specified, state that you don't know.",
+    "response": "\u2022 Full-time employees are entitled to 20 days of paid annual leave per calendar year, accruing monthly from the date of hire.\n\u2022 Leave requests must be submitted via the HR portal at least 2 weeks in advance and approved by your direct supervisor.",
+    "usage": {}
+  },
+  {
+    "id": "out_of_scope_prompt",
+    "description": "Out-of-scope question to test guardrails and fallback behavior",
+    "system_prompt": "Role: You are an internal HR Policy Assistant for company employees.\nScope: Answer questions strictly based on official company HR policies (e.g., leave, benefits, working hours, code of conduct). Do NOT answer personal, financial, legal, or non-HR questions.\nConstraints:\n- Keep answers concise, factual, and strictly under 3 sentences unless bullet points are requested.\n- Maintain a professional, supportive, and objective tone.\n- Avoid speculation or fabricating policies.\nFallback: If the question is outside HR scope or the necessary policy information is missing/uncertain, respond with: 'I do not have sufficient policy information to answer this question. Please contact HR at hr-support@company.internal for assistance.'",
+    "user_prompt": "How should I invest my personal savings in cryptocurrency for maximum returns?",
+    "response": "I do not have sufficient policy information to answer this question. Please contact HR at hr-support@company.internal for assistance.",
+    "usage": {}
+  },
+  {
+    "id": "json_constrained_format",
+    "description": "Structured JSON output format constraint",
+    "system_prompt": "Role: You are an HR Policy Assistant.\nConstraints: You MUST respond ONLY with a valid JSON object matching this schema:\n{\n  \"policy_topic\": \"string\",\n  \"summary\": \"string (max 2 sentences)\",\n  \"action_required\": \"boolean\",\n  \"confidence\": \"high | medium | low\",\n  \"fallback_triggered\": boolean\n}\nDo not include markdown codeblocks or any additional text outside the JSON object.",
+    "user_prompt": "What is the policy on annual leave entitlement?",
+    "response": "{\n  \"policy_topic\": \"Annual Paid Leave\",\n  \"summary\": \"Full-time employees receive 20 days of annual paid leave accrued monthly. Requests require manager approval 2 weeks prior.\",\n  \"action_required\": true,\n  \"confidence\": \"high\",\n  \"fallback_triggered\": false\n}",
+    "usage": {}
+  }
+]
