@@ -1,0 +1,8 @@
+{
+    "temperature": {
+        "0.0": "[SIMULATED - temp=0.0] Regular performance reviews are essential for aligning employee goals with company objectives, providing constructive feedback, and identifying areas for professional development. They ensure consistent communication and help maintain productivity.",
+        "1.0": "[SIMULATED - temp=1.0] Imagine a ship without a compass\u2014that's a company without performance reviews! They totally transform the workplace by sparking amazing conversations, boosting morale sky-high, and unleashing the hidden potential of every single team member in unexpected ways!"
+    },
+    "max_tokens": "[SIMULATED] Regular performance reviews are essential for aligning employee goals with company",
+    "stop_sequence": "[SIMULATED] Regular performance reviews are essential for aligning employee goals with company objectives"
+}
