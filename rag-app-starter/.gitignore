@@ -13,16 +13,20 @@ __pycache__/
 # Environment configuration (NEVER commit secrets!)
 .env
 .env.*
+!.env.example
 
 # Local data files and documents
 data/*
 !data/.gitkeep
+!data/sample_leave_policy.txt
 
 # Generated output files
 outputs/*
 !outputs/.gitkeep
 !outputs/prompt_comparison.md
 !outputs/comparison_results.json
+!outputs/token_estimation_report.md
+!outputs/token_analysis.json
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
