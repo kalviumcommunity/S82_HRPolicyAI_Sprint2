@@ -1,3 +1,10 @@
 This is a plain text document.
 It contains some simple text to test the plain text loader.
 Everything here should be extracted as-is.
+
+Page 1 of 12
+
+
+   
+More text... \r\n
+Some weird characters: \u00e2\u20ac\u2122 encoding artifacts.
