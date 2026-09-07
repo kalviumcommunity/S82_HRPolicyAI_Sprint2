@@ -8,7 +8,7 @@ from openai import OpenAI
 
 
 SAMPLE_CHUNKS = [
-    {
+SAMPLE_CHUNKS = [ 
         "text": "Employees may take up to 20 days of paid annual leave each year.",
         "metadata": {"source": "sample_leave_policy.txt", "chunk_index": 0, "section": "Annual leave"},
     },
@@ -19,6 +19,7 @@ SAMPLE_CHUNKS = [
 ]
 
 
+SAMPLE_QUERY = "How many paid annual leave days can an employee take?"
 def embed_chunks(chunks: list[dict[str, Any]], client: Any, model: str) -> list[dict[str, Any]]:
     """Embed chunks in one batch while preserving retrieval context."""
     if not chunks:
@@ -49,6 +50,74 @@ def embed_chunks(chunks: list[dict[str, Any]], client: Any, model: str) -> list[
     return records
 
 
+def cosine_similarity(first: list[float], second: list[float]) -> float:
+    """Compare vector direction, returning a score between -1 and 1."""
+    if len(first) != len(second):
+        raise ValueError("Vectors must have the same dimension.")
+
+    first_norm = sum(value * value for value in first) ** 0.5
+    second_norm = sum(value * value for value in second) ** 0.5
+    if first_norm == 0 or second_norm == 0:
+        return 0.0
+
+    dot_product = sum(left * right for left, right in zip(first, second))
+    return dot_product / (first_norm * second_norm)
+
+
+def rank_chunks(query_embedding: list[float], records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return chunk records ordered from most to least similar to a query."""
+    ranked = []
+    for record in records:
+        ranked.append(
+            {
+                "score": cosine_similarity(query_embedding, record["embedding"]),
+                "text": record["text"],
+                "metadata": record["metadata"],
+            }
+        )
+    return sorted(ranked, key=lambda result: result["score"], reverse=True)
+
+
+def embed_query(query: str, client: Any, model: str) -> list[float]:
+    """Embed one user query with the same model used for document chunks."""
+    response = client.embeddings.create(model=model, input=[query])
+    if len(response.data) != 1:
+        raise ValueError("The embeddings API did not return exactly one query vector.")
+    return response.data[0].embedding
+
+
+def build_similarity_report(
+    query: str, ranked_results: list[dict[str, Any]], model: str
+) -> str:
+    """Create a reviewable report showing every ranked result and its provenance."""
+    lines = [
+        "SIMILARITY RANKING VERIFICATION",
+        "=" * 60,
+        f"Model: {model}",
+        "Metric: cosine similarity",
+        "Why: cosine compares vector direction, which captures semantic orientation while reducing the effect of vector magnitude.",
+        f"Query: {query}",
+        "",
+        "RANKED RESULTS",
+        "-" * 60,
+    ]
+    for rank, result in enumerate(ranked_results, start=1):
+        lines.extend(
+            [
+                f"Rank {rank} score: {result['score']:.6f}",
+                f"Rank {rank} text: {result['text']}",
+                f"Rank {rank} metadata: {json.dumps(result['metadata'], sort_keys=True)}",
+            ]
+        )
+    if ranked_results:
+        lines.extend(
+            [
+                "",
+                f"Most similar: {ranked_results[0]['text']} ({ranked_results[0]['score']:.6f})",
+                f"Least similar: {ranked_results[-1]['text']} ({ranked_results[-1]['score']:.6f})",
+            ]
+        )
+    return "\n".join(lines)
 def build_report(records: list[dict[str, Any]], model: str) -> str:
     """Create human-readable verification output without dumping full vectors."""
     vector_length = len(records[0]["embedding"]) if records else 0
@@ -92,9 +161,26 @@ def main() -> None:
         encoding="utf-8",
     )
     report = build_report(records, model)
+    query_embedding = embed_query(SAMPLE_QUERY, client, model)
+    ranked_results = rank_chunks(query_embedding, records)
     (output_dir / "embedding_results.txt").write_text(report, encoding="utf-8")
+    similarity_report = build_similarity_report(SAMPLE_QUERY, ranked_results, model)
+    (output_dir / "similarity_results.txt").write_text(similarity_report, encoding="utf-8")
+    (output_dir / "similarity_results.json").write_text(
+        json.dumps(
+            {
+                "model": model,
+                "query": SAMPLE_QUERY,
+                "metric": "cosine_similarity",
+                "results": ranked_results,
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     print(report)
-    print(f"\nStored full records in: {output_dir / 'embedding_results.json'}")
+    print(f"\n{similarity_report}")
+    print(f"\nStored ranking results in: {output_dir / 'similarity_results.json'}")
 
 
 if __name__ == "__main__":
