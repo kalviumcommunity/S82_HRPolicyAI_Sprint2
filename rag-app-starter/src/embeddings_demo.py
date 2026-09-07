@@ -1,169 +1,101 @@
+import json
 import os
 from pathlib import Path
+from typing import Any
 
-import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
 
-load_dotenv()
 
-# -----------------------------
-# Configuration
-# -----------------------------
-API_KEY = os.getenv("OPENAI_API_KEY")
-BASE_URL = os.getenv("OPENAI_BASE_URL")
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL")
-
-if not API_KEY:
-    raise ValueError("OPENAI_API_KEY is missing from .env")
-
-if not EMBEDDING_MODEL:
-    raise ValueError("EMBEDDING_MODEL is missing from .env")
-
-client = OpenAI(
-    api_key=API_KEY,
-    base_url=BASE_URL if BASE_URL else None,
-)
-
-# -----------------------------
-# Sample texts
-# -----------------------------
-texts = [
-    "How do I reset my account password?",
-    "What are the steps to recover access to my login?",
-    "The cafeteria menu has pasta today.",
+SAMPLE_CHUNKS = [
+    {
+        "text": "Employees may take up to 20 days of paid annual leave each year.",
+        "metadata": {"source": "sample_leave_policy.txt", "chunk_index": 0, "section": "Annual leave"},
+    },
+    {
+        "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+        "metadata": {"source": "sample_leave_policy.txt", "chunk_index": 1, "section": "Requesting leave"},
+    },
 ]
 
-# -----------------------------
-# Generate embeddings
-# -----------------------------
-response = client.embeddings.create(
-    model=EMBEDDING_MODEL,
-    input=texts,
-)
 
-embeddings = [item.embedding for item in response.data]
+def embed_chunks(chunks: list[dict[str, Any]], client: Any, model: str) -> list[dict[str, Any]]:
+    """Embed chunks in one batch while preserving retrieval context."""
+    if not chunks:
+        return []
 
-# -----------------------------
-# Cosine similarity
-# -----------------------------
-def cosine_similarity(a, b):
-    a = np.array(a)
-    b = np.array(b)
-
-    denominator = np.linalg.norm(a) * np.linalg.norm(b)
-
-    if denominator == 0:
-        return 0.0
-
-    return float(np.dot(a, b) / denominator)
-
-
-similarity = cosine_similarity(
-    embeddings[0],
-    embeddings[1],
-)
-
-dissimilarity = cosine_similarity(
-    embeddings[0],
-    embeddings[2],
-)
-
-# -----------------------------
-# Validation
-# -----------------------------
-dimensions = [len(vector) for vector in embeddings]
-
-if len(set(dimensions)) != 1:
-    raise ValueError("Embedding vectors do not have the same dimension.")
-
-dimension = dimensions[0]
-
-# -----------------------------
-# Create output
-# -----------------------------
-output = []
-
-output.append("EMBEDDINGS FUNDAMENTALS DEMONSTRATION")
-output.append("=" * 60)
-
-output.append("\nSAMPLE TEXTS")
-output.append("-" * 60)
-
-for index, text in enumerate(texts):
-    output.append(f"{index + 1}. {text}")
-
-output.append("\nVECTOR DIMENSION")
-output.append("-" * 60)
-output.append(f"Number of texts: {len(texts)}")
-output.append(f"Vector dimensions: {dimensions}")
-output.append(f"Common vector dimension: {dimension}")
-output.append("PASS: Every text produced a vector of the same length.")
-
-output.append("\nSAMPLE VECTOR OUTPUT")
-output.append("-" * 60)
-
-for index, vector in enumerate(embeddings):
-    output.append(
-        f"Text {index + 1} first 8 values: {vector[:8]}"
+    response = client.embeddings.create(
+        model=model,
+        input=[chunk["text"] for chunk in chunks],
     )
 
-output.append("\nCOSINE SIMILARITY")
-output.append("-" * 60)
+    if len(response.data) != len(chunks):
+        raise ValueError("The embeddings API returned a different number of vectors than chunks.")
 
-output.append(
-    f"Similar pair (password recovery vs login recovery): "
-    f"{similarity:.6f}"
-)
+    records = []
+    for chunk, item in zip(chunks, response.data):
+        records.append(
+            {
+                "text": chunk["text"],
+                "metadata": chunk["metadata"],
+                "embedding": item.embedding,
+            }
+        )
 
-output.append(
-    f"Dissimilar pair (password recovery vs cafeteria): "
-    f"{dissimilarity:.6f}"
-)
+    dimensions = {len(record["embedding"]) for record in records}
+    if len(dimensions) != 1:
+        raise ValueError("Embedding vectors do not have the same dimension.")
 
-if similarity > dissimilarity:
-    output.append(
-        "PASS: Similar meaning produced a higher similarity score."
+    return records
+
+
+def build_report(records: list[dict[str, Any]], model: str) -> str:
+    """Create human-readable verification output without dumping full vectors."""
+    vector_length = len(records[0]["embedding"]) if records else 0
+    lines = [
+        "EMBEDDINGS API VERIFICATION",
+        "=" * 60,
+        f"Model: {model}",
+        f"Chunks embedded: {len(records)}",
+        f"Vector length: {vector_length}",
+        "",
+        "STORED RECORDS",
+        "-" * 60,
+    ]
+    for index, record in enumerate(records):
+        lines.extend(
+            [
+                f"Record {index + 1} text: {record['text']}",
+                f"Record {index + 1} metadata: {json.dumps(record['metadata'], sort_keys=True)}",
+                f"Record {index + 1} sample values: {record['embedding'][:5]}",
+            ]
+        )
+    lines.append("PASS: Every chunk has source text, metadata, and an embedding of the same length.")
+    return "\n".join(lines)
+
+
+def main() -> None:
+    load_dotenv()
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY is missing from .env or the environment.")
+
+    model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL")
+    client = OpenAI(api_key=api_key, base_url=base_url or None)
+    records = embed_chunks(SAMPLE_CHUNKS, client, model)
+
+    output_dir = Path(__file__).parent.parent / "outputs"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    (output_dir / "embedding_results.json").write_text(
+        json.dumps({"model": model, "records": records}, indent=2),
+        encoding="utf-8",
     )
-else:
-    output.append(
-        "WARNING: Similar pair did not score higher."
-    )
+    report = build_report(records, model)
+    (output_dir / "embedding_results.txt").write_text(report, encoding="utf-8")
+    print(report)
+    print(f"\nStored full records in: {output_dir / 'embedding_results.json'}")
 
-output.append("\nWHAT EMBEDDING VECTORS REPRESENT")
-output.append("-" * 60)
-output.append(
-    "Embedding vectors are numeric representations of the meaning "
-    "of text. They are not random IDs and they are not simple "
-    "keyword counts. Texts with similar meanings tend to have "
-    "vectors that are closer together in vector space."
-)
 
-output.append("\nWHY THIS ENABLES SEMANTIC SEARCH")
-output.append("-" * 60)
-output.append(
-    "In a RAG system, document chunks are converted into embedding "
-    "vectors and stored in a vector database. When a user asks a "
-    "question, the question is also converted into a vector. "
-    "The system searches for nearby vectors, allowing it to find "
-    "relevant content even when the question and document use "
-    "different words."
-)
-
-result = "\n".join(output)
-
-print(result)
-
-# -----------------------------
-# Save output
-# -----------------------------
-output_file = (
-    Path(__file__).parent.parent
-    / "outputs"
-    / "embedding_results.txt"
-)
-
-output_file.parent.mkdir(parents=True, exist_ok=True)
-output_file.write_text(result, encoding="utf-8")
-
-print(f"\nResults saved to: {output_file}")
+if __name__ == "__main__":
+    main()

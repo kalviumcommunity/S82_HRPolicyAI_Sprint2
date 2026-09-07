@@ -119,6 +119,21 @@ Open `.env` and fill in your real values:
 python src/main.py
 ```
 
+### 7. Generate sample embeddings
+
+The embedding demo sends the prepared chunks as one batch to the configured
+OpenAI-compatible API. Each returned vector is stored with its source text and
+metadata in `outputs/embedding_results.json`; a readable verification report is
+written to `outputs/embedding_results.txt`.
+
+```powershell
+python src/embeddings_demo.py
+```
+
+The report confirms the number of embedded chunks, common vector length, and
+the first five values from each vector. Use the same `EMBEDDING_MODEL` when
+embedding user queries so document and query vectors share one vector space.
+
 ---
 
 ## Expected Output (clean run — no `.env` values set)
