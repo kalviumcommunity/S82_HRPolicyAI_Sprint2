@@ -8,7 +8,7 @@ from openai import OpenAI
 
 
 SAMPLE_CHUNKS = [
-SAMPLE_CHUNKS = [ 
+    {
         "text": "Employees may take up to 20 days of paid annual leave each year.",
         "metadata": {"source": "sample_leave_policy.txt", "chunk_index": 0, "section": "Annual leave"},
     },

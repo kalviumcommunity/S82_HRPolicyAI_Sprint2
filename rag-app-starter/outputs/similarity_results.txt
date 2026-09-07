@@ -1,0 +1,21 @@
+SIMILARITY RANKING VERIFICATION
+============================================================
+Model: sample-offline-model
+Metric: cosine similarity
+Why: cosine compares vector direction, which captures semantic orientation while reducing the effect of vector magnitude.
+Query: How many paid annual leave days can an employee take?
+
+RANKED RESULTS
+------------------------------------------------------------
+Rank 1 score: 1.000000
+Rank 1 text: Employees may take up to 20 days of paid annual leave each year.
+Rank 1 metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
+Rank 2 score: 0.968864
+Rank 2 text: Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 2 metadata: {"chunk_index": 1, "section": "Requesting leave", "source": "sample_leave_policy.txt"}
+
+Most similar: Employees may take up to 20 days of paid annual leave each year. (1.000000)
+Least similar: Leave requests should be submitted to a manager at least two weeks in advance. (0.968864)
+
+This checked-in artifact is an offline format example using sample vectors.
+Run src/embeddings_demo.py with OPENAI_API_KEY configured for live query rankings.
