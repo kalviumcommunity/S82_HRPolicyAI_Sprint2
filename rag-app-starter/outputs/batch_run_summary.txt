@@ -5,7 +5,7 @@ Batch size: 1
 Batches attempted: 2
 Total chunks: 2
 Embeddings generated: 2
-Skipped chunks: 0
+Skipped chunks:0
 Failed batches: 0
 Retries: 1
 Estimated input tokens: 24

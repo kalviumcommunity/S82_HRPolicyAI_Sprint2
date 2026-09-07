@@ -11,7 +11,7 @@
       "retries": 1,
       "estimated_input_tokens": 24,
       "approximate_cost_usd": 0.00000048,
-      "retry_handling": "One simulated rate-limit response retried with exponential backoff."
+      "retry_handling": "One simulated rate-limit response retried with exponential backoff..."
     },
     {
       "batch_size": 1,
