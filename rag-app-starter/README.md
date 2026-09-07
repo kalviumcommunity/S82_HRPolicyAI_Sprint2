@@ -12,6 +12,13 @@ HRPolicyAI is an internal Retrieval-Augmented Generation (RAG) assistant that an
 > - **Secrets never touch git** — `.env` is ignored; only the template is committed.
 > - **Local data stays local** — `data/` and `outputs/` are ignored by git.
 
+The script also embeds a sample query with that same model, ranks the stored
+chunks using cosine similarity, and writes the scores, source text, and
+metadata to `outputs/similarity_results.json` and
+`outputs/similarity_results.txt`. Cosine similarity compares vector direction,
+which is useful for semantic relatedness because it reduces the effect of
+embedding magnitude.
+
 ---
 
 ## Project Structure

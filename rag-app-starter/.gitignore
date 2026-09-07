@@ -25,6 +25,8 @@ outputs/*
 !outputs/.gitkeep
 !outputs/embedding_results.json
 !outputs/embedding_results.txt
+!outputs/similarity_results.json
+!outputs/similarity_results.txt
 !outputs/prompt_comparison.md
 !outputs/comparison_results.json
 !outputs/token_estimation_report.md
