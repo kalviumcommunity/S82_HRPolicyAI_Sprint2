@@ -1,0 +1,29 @@
+{
+  "model": "sample-offline-model",
+  "sample_runs": [
+    {
+      "batch_size": 1,
+      "batches_attempted": 2,
+      "total_chunks": 2,
+      "embeddings_generated": 2,
+      "skipped_chunks": 0,
+      "failed_batches": 0,
+      "retries": 1,
+      "estimated_input_tokens": 24,
+      "approximate_cost_usd": 0.00000048,
+      "retry_handling": "One simulated rate-limit response retried with exponential backoff."
+    },
+    {
+      "batch_size": 1,
+      "batches_attempted": 0,
+      "total_chunks": 2,
+      "embeddings_generated": 0,
+      "skipped_chunks": 2,
+      "failed_batches": 0,
+      "retries": 0,
+      "estimated_input_tokens": 0,
+      "approximate_cost_usd": 0.0,
+      "reason": "Both unchanged text-and-metadata keys were already stored."
+    }
+  ]
+}

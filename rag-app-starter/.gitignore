@@ -27,6 +27,8 @@ outputs/*
 !outputs/embedding_results.txt
 !outputs/similarity_results.json
 !outputs/similarity_results.txt
+!outputs/batch_run_summary.json
+!outputs/batch_run_summary.txt
 !outputs/prompt_comparison.md
 !outputs/comparison_results.json
 !outputs/token_estimation_report.md
