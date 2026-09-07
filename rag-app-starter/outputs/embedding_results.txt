@@ -1,0 +1,18 @@
+EMBEDDINGS API VERIFICATION
+============================================================
+Model: sample-offline-model
+Chunks embedded: 2
+Vector length: 4
+
+STORED RECORDS
+------------------------------------------------------------
+Record 1 text: Employees may take up to 20 days of paid annual leave each year.
+Record 1 metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
+Record 1 sample values: [0.1, 0.2, 0.3, 0.4]
+Record 2 text: Leave requests should be submitted to a manager at least two weeks in advance.
+Record 2 metadata: {"chunk_index": 1, "section": "Requesting leave", "source": "sample_leave_policy.txt"}
+Record 2 sample values: [0.5, 0.6, 0.7, 0.8]
+PASS: Every chunk has source text, metadata, and an embedding of the same length.
+
+This checked-in artifact is an offline format example. Run src/embeddings_demo.py
+with OPENAI_API_KEY configured to replace it with live API output.
