@@ -19,6 +19,16 @@ metadata to `outputs/similarity_results.json` and
 which is useful for semantic relatedness because it reduces the effect of
 embedding magnitude.
 
+### Batch processing and reruns
+
+The embedding pipeline sends pending chunks in batches, retries rate-limit and
+temporary provider errors with exponential backoff, and records failed batches
+in `outputs/batch_run_summary.json`. Existing records are matched by their
+text and metadata, so rerunning the script skips unchanged chunks. Configure
+`EMBEDDING_BATCH_SIZE`, `EMBEDDING_MAX_RETRIES`, and
+`EMBEDDING_COST_PER_1K_TOKENS` in `.env`; the readable totals are written to
+`outputs/batch_run_summary.txt`.
+
 ---
 
 ## Project Structure

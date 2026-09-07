@@ -1,0 +1,23 @@
+BATCH EMBEDDING RUN SUMMARY
+============================================================
+Model: sample-offline-model
+Batch size: 1
+Batches attempted: 2
+Total chunks: 2
+Embeddings generated: 2
+Skipped chunks:0
+Failed batches: 0
+Retries: 1
+Estimated input tokens: 24
+Approximate embedding cost (USD): $0.00000048
+Retry handling: one simulated rate-limit response waited and retried with exponential backoff.
+
+RERUN SUMMARY
+------------------------------------------------------------
+Total chunks: 2
+Embeddings generated: 0
+Skipped chunks: 2
+Failed batches: 0
+Retries: 0
+Approximate embedding cost (USD): $0.00000000
+Reason: both unchanged text-and-metadata keys were already stored.
