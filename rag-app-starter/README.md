@@ -151,6 +151,20 @@ The report confirms the number of embedded chunks, common vector length, and
 the first five values from each vector. Use the same `EMBEDDING_MODEL` when
 embedding user queries so document and query vectors share one vector space.
 
+### Embedding quality sanity checks
+
+Run the repeatable offline smoke tests against the stored vectors:
+
+```powershell
+python src/embedding_quality_checks.py
+```
+
+This checks known query-to-chunk pairs, verifies the top source and chunk index,
+and writes `outputs/embedding_quality_report.json` plus a readable
+`outputs/embedding_quality_report.txt`. The report includes a deliberately
+generic, borderline query to expose the limits of retrieval. To run the same
+cases with the configured embedding API, use `python src/embedding_quality_checks.py --live`.
+
 ---
 
 ## Expected Output (clean run — no `.env` values set)
