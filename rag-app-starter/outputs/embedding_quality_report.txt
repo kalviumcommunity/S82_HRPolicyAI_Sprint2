@@ -1,0 +1,20 @@
+EMBEDDING QUALITY SANITY REPORT
+============================================================
+Mode/model: offline-fixture (sample-offline-model)
+Metric: cosine_similarity
+Tests: 3  Passed: 2  Failed: 1
+
+RESULTS
+------------------------------------------------------------
+PASS 1. How many paid annual leave days can an employee take? | expected sample_leave_policy.txt #0 | top sample_leave_policy.txt #0 | score 1.000000 (runner-up 0.968864)
+   Note: Specific entitlement wording should select the annual-leave chunk.
+PASS 2. When should an employee submit a leave request? | expected sample_leave_policy.txt #1 | top sample_leave_policy.txt #1 | score 1.000000 (runner-up 0.968864)
+   Note: Specific process wording should select the request chunk.
+FAIL 3. Tell me about leave. | expected sample_leave_policy.txt #0 | top sample_leave_policy.txt #1 | score 0.997323 (runner-up 0.984374)
+   Note: Surprising case: a generic query is nearly tied and has no reliable section signal .
+
+NOTES
+------------------------------------------------------------
+- A top-ranked result is considered relevant only when both source and chunk_index match.
+- The generic leave query is intentionally borderline: semantic similarity alone cannot identify a policy section.
+- Live mode must use the same EMBEDDING_MODEL for corpus and query vectors; mismatched models invalidate ranking.

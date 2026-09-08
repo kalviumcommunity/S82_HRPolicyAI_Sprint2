@@ -1,0 +1,47 @@
+{
+  "model": "offline-fixture (sample-offline-model)",
+  "metric": "cosine_similarity",
+  "test_count": 3,
+  "passed": 2,
+  "failed": 1,
+  "results": [
+    {
+      "query": "How many paid annual leave days can an employee take?",
+      "expected_source": "sample_leave_policy.txt",
+      "expected_chunk_index": 0,
+      "top_source": "sample_leave_policy.txt",
+      "top_chunk_index": 0,
+      "top_score": 1.0,
+      "second_score": 0.968864,
+      "passed": true,
+      "note": "Specific entitlement wording should select the annual-leave chunk."
+    },
+    {
+      "query": "When should an employee submit a leave request?",
+      "expected_source": "sample_leave_policy.txt",
+      "expected_chunk_index": 1,
+      "top_source": "sample_leave_policy.txt",
+      "top_chunk_index": 1,
+      "top_score": 1.0,
+      "second_score": 0.968864,
+      "passed": true,
+      "note": "Specific process wording should select the request chunk."
+    },
+    {
+      "query": "Tell me about leave.",
+      "expected_source": "sample_leave_policy.txt",
+      "expected_chunk_index": 0,
+      "top_source": "sample_leave_policy.txt",
+      "top_chunk_index": 1,
+      "top_score": 0.997323,
+      "second_score": 0.984374,
+      "passed": false,
+      "note": "Surprising case: a generic query is nearly tied and has no reliable section signal. "
+    }
+  ],
+  "notes": [
+    "A top-ranked result is considered relevant only when both source and chunk_index match.",
+    "The generic leave query is intentionally borderline: semantic similarity alone cannot identify a policy section.",
+    "Live mode must use the same EMBEDDING_MODEL for corpus and query vectors; mismatched models invalidate ranking."
+  ]
+}
