@@ -1,0 +1,20 @@
+VECTOR DATABASE INDEXING SUMMARY
+============================================================
+Database: Chroma PersistentClient
+Path: D:\S82_HRPolicyAI_Sprint2\rag-app-starter\.chroma
+Collection: hr_policy_chunks
+Embedding model: sample-offline-model
+Vector dimension: 4
+
+INDEXING RESULTS
+------------------------------------------------------------
+Total chunks provided: 2
+Indexed record count: 2
+Counts match: True
+
+SPOT-CHECK READBACK RECORD
+------------------------------------------------------------
+ID: sample_leave_policy.txt:0
+Vector length: 4
+Text: Employees may take up to 20 days of paid annual leave each year.
+Metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
