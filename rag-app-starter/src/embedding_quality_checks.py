@@ -24,7 +24,7 @@ TEST_CASES = [
     },
     {
         "query": "When should an employee submit a leave request?",
-        "expected_source": "sample_leave_policy.txt",
+        "expected_source": "sample_leave_policy.txt" ,
         "expected_chunk_index": 1,
         "offline_query_vector": [0.5, 0.6, 0.7, 0.8],
         "note": "Specific process wording should select the request chunk.",
