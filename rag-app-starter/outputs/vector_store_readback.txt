@@ -1,0 +1,15 @@
+VECTOR DATABASE READBACK
+============================================================
+Database: Chroma PersistentClient
+Path: C:\Users\saray\OneDrive\Desktop\New folder (2)\S82_HRPolicyAI_Sprint2\rag-app-starter\.chroma
+Collection: hr_policy_chunks
+Embedding model: sample-offline-model
+Distance metric: cosine
+
+READ-BACK RECORD
+------------------------------------------------------------
+ID: sample_leave_policy.txt:0
+Vector length: 4
+Text: Employees may take up to 20 days of paid annual leave each year.
+Metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
+PASS: The application inserted and read back the test record successfully..

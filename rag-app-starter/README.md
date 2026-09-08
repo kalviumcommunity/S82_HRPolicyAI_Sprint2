@@ -165,6 +165,23 @@ and writes `outputs/embedding_quality_report.json` plus a readable
 generic, borderline query to expose the limits of retrieval. To run the same
 cases with the configured embedding API, use `python src/embedding_quality_checks.py --live`.
 
+### Local vector database
+
+The project uses a persistent local Chroma database. Configure its path and
+collection name in `.env` with `CHROMA_DB_PATH` and `CHROMA_COLLECTION_NAME`,
+then run:
+
+```powershell
+python src/vector_store.py
+```
+
+The script reads the stored embedding artifact, validates the common vector
+dimension, creates or opens the collection with cosine distance, and inserts one
+record containing the vector, source text, and chunk metadata. It reads the
+record back and writes `outputs/vector_store_readback.json` and
+`outputs/vector_store_readback.txt`. The local `.chroma/` database is ignored
+by git; the readback report is committed as reproducible evidence.
+
 ---
 
 ## Expected Output (clean run — no `.env` values set)
