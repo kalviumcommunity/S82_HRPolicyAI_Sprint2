@@ -3,6 +3,7 @@
 venv/
 ENV/
 env/
+.chroma/
 
 # Python compiled bytecode and cache
 __pycache__/
@@ -35,6 +36,8 @@ outputs/*
 !outputs/comparison_results.json
 !outputs/token_estimation_report.md
 !outputs/token_analysis.json
+!outputs/vector_store_readback.json
+!outputs/vector_store_readback.txt
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
