@@ -89,7 +89,7 @@ def format_readback(result: dict[str, Any], db_path: Path, collection_name: str,
         f"Vector length: {result['vector_length']}",
         f"Text: {result['text']}",
         f"Metadata: {json.dumps(result['metadata'], sort_keys=True)}",
-        "PASS: The application inserted and read back the test record successfully.",
+        "PASS: The application inserted and read back the test record successfully. ",
     ]
     return "\n".join(lines)
 
