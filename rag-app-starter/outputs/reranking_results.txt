@@ -1,0 +1,41 @@
+RE-RANKING DEMO
+======================================================================
+Query: How should a leave request be submitted?
+Candidate set size: 6
+Final k: 3
+
+INITIAL CANDIDATE ORDER (vector retrieval)
+----------------------------------------------------------------------
+Rank 1: vector_score=0.9966 | section=Parking | source=sample_parking_policy.txt | chunk_index=4 | text=Parking permits must be renewed annually before the end of the month.
+Rank 2: vector_score=0.9957 | section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | text=Employees may take up to 20 days of paid annual leave each year.
+Rank 3: vector_score=0.9827 | section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | text=Performance reviews are scheduled annually for all managers in November.
+Rank 4: vector_score=0.6742 | section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 5: vector_score=0.4901 | section=Sick leave | source=sample_leave_policy.txt | chunk_index=2 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+Rank 6: vector_score=0.4159 | section=Parental leave | source=sample_leave_policy.txt | chunk_index=3 | text=Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.
+
+AFTER RE-RANKING
+----------------------------------------------------------------------
+Rank 1: vector_score=0.6742 | lexical_overlap=1.0000 | rerank_score=0.8208 | section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 2: vector_score=0.9957 | lexical_overlap=0.2500 | rerank_score=0.6601 | section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | text=Employees may take up to 20 days of paid annual leave each year.
+Rank 3: vector_score=0.9827 | lexical_overlap=0.2500 | rerank_score=0.6530 | section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | text=Performance reviews are scheduled annually for all managers in November.
+Rank 4: vector_score=0.9966 | lexical_overlap=0.0000 | rerank_score=0.5481 | section=Parking | source=sample_parking_policy.txt | chunk_index=4 | text=Parking permits must be renewed annually before the end of the month.
+Rank 5: vector_score=0.4901 | lexical_overlap=0.2500 | rerank_score=0.3821 | section=Sick leave | source=sample_leave_policy.txt | chunk_index=2 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+Rank 6: vector_score=0.4159 | lexical_overlap=0.2500 | rerank_score=0.3413 | section=Parental leave | source=sample_leave_policy.txt | chunk_index=3 | text=Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.
+
+FINAL SELECTED CHUNKS
+----------------------------------------------------------------------
+Selected rank 1: section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | rerank_score=0.8208 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+Selected rank 2: section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | rerank_score=0.6601 | text=Employees may take up to 20 days of paid annual leave each year.
+Selected rank 3: section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | rerank_score=0.6530 | text=Performance reviews are scheduled annually for all managers in November.
+
+IMPROVEMENT SUMMARY
+----------------------------------------------------------------------
+Before rerank top result section: Parking
+After rerank top result section: Requesting leave
+Before rerank top result text: Parking permits must be renewed annually before the end of the month.
+After rerank top result text: Leave requests should be submitted to a manager at least two weeks in advance.
+
+Why this matters:
+- The initial vector ranking was driven by semantic similarity only.
+- The re-ranker adds an explicit keyword/phrase signal so direct answer chunks rise in the ranking.
+- The final top-k chunk set is therefore more directly relevant to the query than the raw vector order..
