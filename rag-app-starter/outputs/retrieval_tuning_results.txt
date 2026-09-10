@@ -1,0 +1,62 @@
+RETRIEVAL TUNING EXPERIMENT
+======================================================================
+Test queries with expected relevant chunks:
+- Query: How many paid annual leave days can an employee take? | Expected section: Annual leave | Expected chunk index: 0
+- Query: How should a leave request be submitted? | Expected section: Requesting leave | Expected chunk index: 1
+- Query: How much paid sick leave do employees receive annually? | Expected section: Sick leave | Expected chunk index: 2
+- Query: What is the paid parental leave entitlement for primary caregivers? | Expected section: Parental leave | Expected chunk index: 3
+
+SETTING COMPARISON
+----------------------------------------------------------------------
+Setting: baseline_unfiltered_k3
+Description: Unfiltered top-3 semantic search
+Top-1 hit rate: 1.0000
+Top-k hit rate: 1.0000
+Average precision at k: 0.3333
+
+- Query: How many paid annual leave days can an employee take? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333
+- Query: How should a leave request be submitted? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333
+- Query: How much paid sick leave do employees receive annually? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333
+- Query: What is the paid parental leave entitlement for primary caregivers? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333
+
+Setting: section_filtered_k3
+Description: Section-filtered top-3 semantic search
+Top-1 hit rate: 1.0000
+Top-k hit rate: 1.0000
+Average precision at k: 1.0000
+
+- Query: How many paid annual leave days can an employee take? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How should a leave request be submitted? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How much paid sick leave do employees receive annually? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: What is the paid parental leave entitlement for primary caregivers? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+
+Setting: section_filtered_k1_threshold_0_75
+Description: Section filter with stricter threshold and k=1
+Top-1 hit rate: 1.0000
+Top-k hit rate: 1.0000
+Average precision at k: 1.0000
+
+- Query: How many paid annual leave days can an employee take? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How should a leave request be submitted? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How much paid sick leave do employees receive annually? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: What is the paid parental leave entitlement for primary caregivers? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+
+Setting: section_filtered_hybrid_k3
+Description: Section filter plus hybrid keyword boost
+Top-1 hit rate: 1.0000
+Top-k hit rate: 1.0000
+Average precision at k: 1.0000
+
+- Query: How many paid annual leave days can an employee take? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How should a leave request be submitted? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: How much paid sick leave do employees receive annually? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+- Query: What is the paid parental leave entitlement for primary caregivers? | Top-1 hit: True | Top-k hit: True | Precision@k: 1.0000
+
+BEST SETTINGS
+----------------------------------------------------------------------
+Selected setting: section_filtered_k1_threshold_0_75
+Description: Section filter with stricter threshold and k=1
+Top-1 hit rate: 1.0000
+Top-k hit rate: 1.0000
+Average precision at k: 1.0000
+Reason: Chosen because it achieved the highest relevance precision while retaining the correct top-ranked chunk, and the stricter filter + lower k gave the most focused results.

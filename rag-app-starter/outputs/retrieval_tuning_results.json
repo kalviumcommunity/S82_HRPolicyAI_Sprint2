@@ -1,0 +1,468 @@
+{
+  "queries": [
+    {
+      "query": "How many paid annual leave days can an employee take?",
+      "expected_section": "Annual leave",
+      "expected_chunk_index": 0
+    },
+    {
+      "query": "How should a leave request be submitted?",
+      "expected_section": "Requesting leave",
+      "expected_chunk_index": 1
+    },
+    {
+      "query": "How much paid sick leave do employees receive annually?",
+      "expected_section": "Sick leave",
+      "expected_chunk_index": 2
+    },
+    {
+      "query": "What is the paid parental leave entitlement for primary caregivers?",
+      "expected_section": "Parental leave",
+      "expected_chunk_index": 3
+    }
+  ],
+  "settings": [
+    {
+      "name": "baseline_unfiltered_k3",
+      "description": "Unfiltered top-3 semantic search",
+      "metadata_filter": null,
+      "top_k": 3,
+      "score_threshold": 0.0,
+      "use_hybrid": false,
+      "top1_hit_rate": 1.0,
+      "topk_hit_rate": 1.0,
+      "average_precision_at_k": 0.3333,
+      "results": [
+        {
+          "query": "How many paid annual leave days can an employee take?",
+          "expected_section": "Annual leave",
+          "expected_chunk_index": 0,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 0.3333,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            },
+            {
+              "rank": 2,
+              "section": "Parking",
+              "chunk_index": 4,
+              "score": 0.9999,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Parking permits must be renewed annually before the end of the month."
+            },
+            {
+              "rank": 3,
+              "section": "Performance reviews",
+              "chunk_index": 5,
+              "score": 0.992,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Performance reviews are scheduled annually for all managers in November."
+            }
+          ]
+        },
+        {
+          "query": "How should a leave request be submitted?",
+          "expected_section": "Requesting leave",
+          "expected_chunk_index": 1,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 0.3333,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Requesting leave",
+              "chunk_index": 1,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+            },
+            {
+              "rank": 2,
+              "section": "Performance reviews",
+              "chunk_index": 5,
+              "score": 0.771,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Performance reviews are scheduled annually for all managers in November."
+            },
+            {
+              "rank": 3,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 0.7396,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            }
+          ]
+        },
+        {
+          "query": "How much paid sick leave do employees receive annually?",
+          "expected_section": "Sick leave",
+          "expected_chunk_index": 2,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 0.3333,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Sick leave",
+              "chunk_index": 2,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+            },
+            {
+              "rank": 2,
+              "section": "Performance reviews",
+              "chunk_index": 5,
+              "score": 0.6075,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Performance reviews are scheduled annually for all managers in November."
+            },
+            {
+              "rank": 3,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 0.5069,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            }
+          ]
+        },
+        {
+          "query": "What is the paid parental leave entitlement for primary caregivers?",
+          "expected_section": "Parental leave",
+          "expected_chunk_index": 3,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 0.3333,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Parental leave",
+              "chunk_index": 3,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+            },
+            {
+              "rank": 2,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 0.4185,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            },
+            {
+              "rank": 3,
+              "section": "Parking",
+              "chunk_index": 4,
+              "score": 0.4184,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Parking permits must be renewed annually before the end of the month."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "section_filtered_k3",
+      "description": "Section-filtered top-3 semantic search",
+      "metadata_filter": {
+        "section": "expected_section"
+      },
+      "top_k": 3,
+      "score_threshold": 0.0,
+      "use_hybrid": false,
+      "top1_hit_rate": 1.0,
+      "topk_hit_rate": 1.0,
+      "average_precision_at_k": 1.0,
+      "results": [
+        {
+          "query": "How many paid annual leave days can an employee take?",
+          "expected_section": "Annual leave",
+          "expected_chunk_index": 0,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            }
+          ]
+        },
+        {
+          "query": "How should a leave request be submitted?",
+          "expected_section": "Requesting leave",
+          "expected_chunk_index": 1,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Requesting leave",
+              "chunk_index": 1,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+            }
+          ]
+        },
+        {
+          "query": "How much paid sick leave do employees receive annually?",
+          "expected_section": "Sick leave",
+          "expected_chunk_index": 2,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Sick leave",
+              "chunk_index": 2,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+            }
+          ]
+        },
+        {
+          "query": "What is the paid parental leave entitlement for primary caregivers?",
+          "expected_section": "Parental leave",
+          "expected_chunk_index": 3,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Parental leave",
+              "chunk_index": 3,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "section_filtered_k1_threshold_0_75",
+      "description": "Section filter with stricter threshold and k=1",
+      "metadata_filter": {
+        "section": "expected_section"
+      },
+      "top_k": 1,
+      "score_threshold": 0.75,
+      "use_hybrid": false,
+      "top1_hit_rate": 1.0,
+      "topk_hit_rate": 1.0,
+      "average_precision_at_k": 1.0,
+      "results": [
+        {
+          "query": "How many paid annual leave days can an employee take?",
+          "expected_section": "Annual leave",
+          "expected_chunk_index": 0,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            }
+          ]
+        },
+        {
+          "query": "How should a leave request be submitted?",
+          "expected_section": "Requesting leave",
+          "expected_chunk_index": 1,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Requesting leave",
+              "chunk_index": 1,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+            }
+          ]
+        },
+        {
+          "query": "How much paid sick leave do employees receive annually?",
+          "expected_section": "Sick leave",
+          "expected_chunk_index": 2,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Sick leave",
+              "chunk_index": 2,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+            }
+          ]
+        },
+        {
+          "query": "What is the paid parental leave entitlement for primary caregivers?",
+          "expected_section": "Parental leave",
+          "expected_chunk_index": 3,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Parental leave",
+              "chunk_index": 3,
+              "score": 1.0,
+              "keyword_score": null,
+              "hybrid_score": null,
+              "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "section_filtered_hybrid_k3",
+      "description": "Section filter plus hybrid keyword boost",
+      "metadata_filter": {
+        "section": "expected_section"
+      },
+      "top_k": 3,
+      "score_threshold": 0.0,
+      "use_hybrid": true,
+      "top1_hit_rate": 1.0,
+      "topk_hit_rate": 1.0,
+      "average_precision_at_k": 1.0,
+      "results": [
+        {
+          "query": "How many paid annual leave days can an employee take?",
+          "expected_section": "Annual leave",
+          "expected_chunk_index": 0,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Annual leave",
+              "chunk_index": 0,
+              "score": 1.0,
+              "keyword_score": 3,
+              "hybrid_score": 1.4000000000000001,
+              "text": "Employees may take up to 20 days of paid annual leave each year."
+            }
+          ]
+        },
+        {
+          "query": "How should a leave request be submitted?",
+          "expected_section": "Requesting leave",
+          "expected_chunk_index": 1,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Requesting leave",
+              "chunk_index": 1,
+              "score": 1.0,
+              "keyword_score": 3,
+              "hybrid_score": 1.4000000000000001,
+              "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+            }
+          ]
+        },
+        {
+          "query": "How much paid sick leave do employees receive annually?",
+          "expected_section": "Sick leave",
+          "expected_chunk_index": 2,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Sick leave",
+              "chunk_index": 2,
+              "score": 1.0,
+              "keyword_score": 3,
+              "hybrid_score": 1.4000000000000004,
+              "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+            }
+          ]
+        },
+        {
+          "query": "What is the paid parental leave entitlement for primary caregivers?",
+          "expected_section": "Parental leave",
+          "expected_chunk_index": 3,
+          "top1_hit": true,
+          "topk_hit": true,
+          "precision_at_k": 1.0,
+          "retrieved": [
+            {
+              "rank": 1,
+              "section": "Parental leave",
+              "chunk_index": 3,
+              "score": 1.0,
+              "keyword_score": 3,
+              "hybrid_score": 1.4,
+              "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "selected_setting": {
+    "name": "section_filtered_k1_threshold_0_75",
+    "description": "Section filter with stricter threshold and k=1",
+    "top1_hit_rate": 1.0,
+    "topk_hit_rate": 1.0,
+    "average_precision_at_k": 1.0,
+    "reason": "Chosen because it achieved the highest relevance precision while retaining the correct top-ranked chunk, and the stricter filter + lower k gave the most focused results."
+  }
+}

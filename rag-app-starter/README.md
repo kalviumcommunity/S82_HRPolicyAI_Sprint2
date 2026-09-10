@@ -25,6 +25,13 @@ then applies a lightweight keyword boost to create a hybrid ranking. The
 resulting artifacts are written to `outputs/filtered_search_results.json` and
 `outputs/filtered_search_results.txt`, including a sample precision comparison.
 
+To run a retrieval tuning experiment, use `python src/retrieval_tuning_experiment.py`.
+This script evaluates several retrieval settings (unfiltered vs section-filtered,
+various `k` values, score thresholds, and hybrid ranking), measures top-1/top-k
+hit rates plus average precision at k, and writes the comparison to
+`outputs/retrieval_tuning_results.json` and
+`outputs/retrieval_tuning_results.txt`.
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and
