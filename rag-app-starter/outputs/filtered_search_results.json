@@ -1,0 +1,79 @@
+{
+  "query": "How many paid annual leave days can an employee take?",
+  "filter": {
+    "section": "Annual leave"
+  },
+  "keywords": [
+    "annual",
+    "leave"
+  ],
+  "unfiltered_results": [
+    {
+      "score": 1.0,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "section": "Annual leave",
+        "document_type": "policy",
+        "user_group": "all_employees",
+        "chunk_index": 0
+      }
+    },
+    {
+      "score": 0.7395639529423028,
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "section": "Requesting leave",
+        "document_type": "policy",
+        "user_group": "all_employees",
+        "chunk_index": 1
+      }
+    },
+    {
+      "score": 0.5068921475222526,
+      "text": "All employees receive 10 days of paid sick leave annually on January 1st.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "section": "Sick leave",
+        "document_type": "policy",
+        "user_group": "all_employees",
+        "chunk_index": 2
+      }
+    }
+  ],
+  "filtered_results": [
+    {
+      "score": 1.0,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "section": "Annual leave",
+        "document_type": "policy",
+        "user_group": "all_employees",
+        "chunk_index": 0
+      }
+    }
+  ],
+  "hybrid_results": [
+    {
+      "score": 1.0,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "section": "Annual leave",
+        "document_type": "policy",
+        "user_group": "all_employees",
+        "chunk_index": 0
+      },
+      "keyword_score": 2,
+      "hybrid_score": 1.2000000000000002
+    }
+  ],
+  "precision_summary": {
+    "unfiltered_top_result_section": "Annual leave",
+    "filtered_top_result_section": "Annual leave",
+    "filter_improves_precision": true,
+    "relevant_results_removed": true
+  }
+}

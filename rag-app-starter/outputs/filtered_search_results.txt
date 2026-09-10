@@ -1,0 +1,50 @@
+METADATA FILTERING & HYBRID SEARCH DEMO
+======================================================================
+Query: How many paid annual leave days can an employee take?
+Metadata filter: {"section": "Annual leave"}
+Hybrid keywords: annual, leave
+
+UNFILTERED RESULTS
+----------------------------------------------------------------------
+Rank 1 score: 1.0000
+Rank 1 section: Annual leave
+Rank 1 source: sample_leave_policy.txt
+Rank 1 text: Employees may take up to 20 days of paid annual leave each year.
+
+Rank 2 score: 0.7396
+Rank 2 section: Requesting leave
+Rank 2 source: sample_leave_policy.txt
+Rank 2 text: Leave requests should be submitted to a manager at least two weeks in advance.
+
+Rank 3 score: 0.5069
+Rank 3 section: Sick leave
+Rank 3 source: sample_leave_policy.txt
+Rank 3 text: All employees receive 10 days of paid sick leave annually on January 1st.
+
+FILTERED RESULTS
+----------------------------------------------------------------------
+Rank 1 score: 1.0000
+Rank 1 section: Annual leave
+Rank 1 source: sample_leave_policy.txt
+Rank 1 text: Employees may take up to 20 days of paid annual leave each year.
+
+HYBRID RESULTS
+----------------------------------------------------------------------
+Rank 1 score: 1.0000
+Rank 1 keyword_score: 2
+Rank 1 hybrid_score: 1.2000
+Rank 1 section: Annual leave
+Rank 1 source: sample_leave_policy.txt
+Rank 1 text: Employees may take up to 20 days of paid annual leave each year.
+
+PRECISION SUMMARY
+----------------------------------------------------------------------
+Unfiltered top result section: Annual leave
+Filtered top result section: Annual leave
+Filter improves precision: True
+Relevant results removed by filter: True
+
+Why this matters:
+- Metadata filtering scopes retrieval to the relevant slice of the corpus.
+- Hybrid search adds an exact-term signal when keyword matches matter.
+- Filtering improves precision when the metadata reflects the user's intent.

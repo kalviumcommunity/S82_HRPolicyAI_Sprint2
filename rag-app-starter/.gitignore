@@ -38,6 +38,8 @@ outputs/*
 !outputs/token_analysis.json
 !outputs/vector_store_readback.json
 !outputs/vector_store_readback.txt
+!outputs/filtered_search_results.json
+!outputs/filtered_search_results.txt
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
