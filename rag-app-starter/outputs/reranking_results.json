@@ -1,0 +1,155 @@
+{
+  "query": "How should a leave request be submitted?",
+  "initial_candidate_count": 6,
+  "final_k": 3,
+  "before_rerank": [
+    {
+      "rank": 1,
+      "vector_score": 0.9966,
+      "text": "Parking permits must be renewed annually before the end of the month.",
+      "section": "Parking",
+      "source": "sample_parking_policy.txt",
+      "chunk_index": 4
+    },
+    {
+      "rank": 2,
+      "vector_score": 0.9957,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "section": "Annual leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 0
+    },
+    {
+      "rank": 3,
+      "vector_score": 0.9827,
+      "text": "Performance reviews are scheduled annually for all managers in November.",
+      "section": "Performance reviews",
+      "source": "sample_performance_policy.txt",
+      "chunk_index": 5
+    },
+    {
+      "rank": 4,
+      "vector_score": 0.6742,
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "section": "Requesting leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 1
+    },
+    {
+      "rank": 5,
+      "vector_score": 0.4901,
+      "text": "All employees receive 10 days of paid sick leave annually on January 1st.",
+      "section": "Sick leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 2
+    },
+    {
+      "rank": 6,
+      "vector_score": 0.4159,
+      "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.",
+      "section": "Parental leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 3
+    }
+  ],
+  "after_rerank": [
+    {
+      "rank": 1,
+      "vector_score": 0.6742,
+      "lexical_overlap": 1.0,
+      "rerank_score": 0.8208,
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "section": "Requesting leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 1
+    },
+    {
+      "rank": 2,
+      "vector_score": 0.9957,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.6601,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "section": "Annual leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 0
+    },
+    {
+      "rank": 3,
+      "vector_score": 0.9827,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.653,
+      "text": "Performance reviews are scheduled annually for all managers in November.",
+      "section": "Performance reviews",
+      "source": "sample_performance_policy.txt",
+      "chunk_index": 5
+    },
+    {
+      "rank": 4,
+      "vector_score": 0.9966,
+      "lexical_overlap": 0.0,
+      "rerank_score": 0.5481,
+      "text": "Parking permits must be renewed annually before the end of the month.",
+      "section": "Parking",
+      "source": "sample_parking_policy.txt",
+      "chunk_index": 4
+    },
+    {
+      "rank": 5,
+      "vector_score": 0.4901,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.3821,
+      "text": "All employees receive 10 days of paid sick leave annually on January 1st.",
+      "section": "Sick leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 2
+    },
+    {
+      "rank": 6,
+      "vector_score": 0.4159,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.3413,
+      "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.",
+      "section": "Parental leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 3
+    }
+  ],
+  "final_selected_chunks": [
+    {
+      "rank": 1,
+      "vector_score": 0.6742,
+      "lexical_overlap": 1.0,
+      "rerank_score": 0.8208,
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "section": "Requesting leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 1
+    },
+    {
+      "rank": 2,
+      "vector_score": 0.9957,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.6601,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "section": "Annual leave",
+      "source": "sample_leave_policy.txt",
+      "chunk_index": 0
+    },
+    {
+      "rank": 3,
+      "vector_score": 0.9827,
+      "lexical_overlap": 0.25,
+      "rerank_score": 0.653,
+      "text": "Performance reviews are scheduled annually for all managers in November.",
+      "section": "Performance reviews",
+      "source": "sample_performance_policy.txt",
+      "chunk_index": 5
+    }
+  ],
+  "improved_top_result": {
+    "before": "Parking",
+    "after": "Requesting leave",
+    "before_rank_1_text": "Parking permits must be renewed annually before the end of the month.",
+    "after_rank_1_text": "Leave requests should be submitted to a manager at least two weeks in advance."
+  }
+}

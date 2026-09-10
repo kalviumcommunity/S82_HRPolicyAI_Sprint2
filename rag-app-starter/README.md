@@ -32,6 +32,12 @@ hit rates plus average precision at k, and writes the comparison to
 `outputs/retrieval_tuning_results.json` and
 `outputs/retrieval_tuning_results.txt`.
 
+For a re-ranking demo, run `python src/reranking_demo.py`. This script first
+retrieves a larger candidate set, then applies a simple re-ranker that combines
+vector similarity with lexical overlap. The generated artifacts in
+`outputs/reranking_results.json` and `outputs/reranking_results.txt` show the
+before-and-after ordering, the candidate set, and the final selected chunks.
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and

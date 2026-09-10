@@ -40,6 +40,8 @@ outputs/*
 !outputs/vector_store_readback.txt
 !outputs/retrieval_tuning_results.json
 !outputs/retrieval_tuning_results.txt
+!outputs/reranking_results.json
+!outputs/reranking_results.txt
 !outputs/filtered_search_results.json
 !outputs/filtered_search_results.txt
 
