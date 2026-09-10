@@ -19,6 +19,12 @@ metadata to `outputs/similarity_results.json` and
 which is useful for semantic relatedness because it reduces the effect of
 embedding magnitude.
 
+A companion demo, `python src/metadata_filtering_demo.py`, shows metadata
+filtering and hybrid search. It compares unfiltered vs filtered top-k results,
+then applies a lightweight keyword boost to create a hybrid ranking. The
+resulting artifacts are written to `outputs/filtered_search_results.json` and
+`outputs/filtered_search_results.txt`, including a sample precision comparison.
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and
