@@ -12,7 +12,7 @@ Setting: baseline_unfiltered_k3
 Description: Unfiltered top-3 semantic search
 Top-1 hit rate: 1.0000
 Top-k hit rate: 1.0000
-Average precision at k: 0.3333
+Average precision at k:0.3333
 
 - Query: How many paid annual leave days can an employee take? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333
 - Query: How should a leave request be submitted? | Top-1 hit: True | Top-k hit: True | Precision@k: 0.3333

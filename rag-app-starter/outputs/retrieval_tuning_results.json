@@ -7,7 +7,7 @@
     },
     {
       "query": "How should a leave request be submitted?",
-      "expected_section": "Requesting leave",
+      "expected_section": "Requesting leave" ,
       "expected_chunk_index": 1
     },
     {
@@ -16,7 +16,7 @@
       "expected_chunk_index": 2
     },
     {
-      "query": "What is the paid parental leave entitlement for primary caregivers?",
+      "query": "What is the paid parental leave entitlement for primary caregivers? ",
       "expected_section": "Parental leave",
       "expected_chunk_index": 3
     }
