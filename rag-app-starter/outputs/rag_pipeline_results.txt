@@ -6,6 +6,28 @@ Flow overview:
 3. assemble_context - package the top-ranked chunks with metadata, source markers, and a token budget.
 4. generate_answer - return an answer grounded in the chosen sources via a prompt with explicit grounding instructions.
 
+GROUNDING COMPARISON
+----------------------------------------------------------------------
+WITH RETRIEVAL
+- Query: How should a leave request be submitted?
+- Grounded: True
+- Answer: According to [1] (sample_leave_policy.txt), Leave requests should be submitted to a manager at least two weeks in advance.
+- Source accuracy: {'uses_only_context': True, 'supporting_markers': ['[1]', '[3]'], 'support_reason': "Supported by markers ['[1]', '[3]']."}
+
+WITHOUT RETRIEVAL
+- Query: How should a leave request be submitted?
+- Grounded: False
+- Answer: I don't know based on the provided information.
+- Source accuracy: {'uses_only_context': False, 'supporting_markers': [], 'support_reason': 'No retrieved context was provided.'}
+
+MISSING CONTEXT CASE
+- Query: What is the company policy for flexible work schedules?
+- Grounded: False
+- Answer: I don't know based on the provided information.
+- Source accuracy: {'uses_only_context': False, 'supporting_markers': [], 'support_reason': 'No retrieved chunk contained enough overlapping terms to support the answer.'}
+
+WITH RETRIEVAL DETAIL
+----------------------------------------------------------------------
 Sample query: How should a leave request be submitted?
 Top-k used: 3
 Query vector: [0.7, 0.95, 0.0, 0.0]

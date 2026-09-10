@@ -150,6 +150,31 @@ def estimate_token_count(text: str) -> int:
     return max(1, len(text.split()))
 
 
+def extract_query_terms(query: str) -> set[str]:
+    stopwords = {
+        "a", "an", "and", "are", "as", "at", "be", "for", "from", "how", "in", "is",
+        "it", "of", "on", "or", "that", "the", "this", "to", "what", "when", "where",
+        "which", "who", "why", "with", "should", "do", "does", "did", "can", "could",
+        "would", "may", "might", "will", "before", "after", "into",
+    }
+    tokens = {token.lower() for token in query.replace("?", " ").split() if token.lower() not in stopwords}
+    return tokens
+
+
+def context_supports_query(query: str, assembled_context: dict[str, Any]) -> tuple[bool, list[str]]:
+    query_terms = extract_query_terms(query)
+    if not query_terms:
+        return False, []
+
+    supporting_markers: list[str] = []
+    for chunk in assembled_context["chunks"]:
+        chunk_terms = extract_query_terms(chunk["text"])
+        if query_terms.intersection(chunk_terms):
+            supporting_markers.append(chunk["marker"])
+
+    return bool(supporting_markers), supporting_markers
+
+
 def assemble_context(
     retrieved: list[dict[str, Any]],
     max_context_tokens: int = MODEL_CONTEXT_TOKEN_BUDGET,
@@ -213,21 +238,41 @@ def generate_answer(query: str, assembled_context: dict[str, Any]) -> dict[str, 
     This demo keeps generation deterministic and transparent. In a production system,
     this stage would call the chat model with the assembled context as the prompt.
     """
-    top_context = assembled_context["chunks"][0]
     prompt = render_answer_prompt(
         context=assembled_context["context_text"],
         question=query,
     )
 
-    answer_text = (
-        f"According to {top_context['marker']} ({top_context['source']}), "
-        f"{top_context['text']}"
-    )
+    supported, supporting_markers = context_supports_query(query, assembled_context)
+
+    if not assembled_context["chunks"] or not supported:
+        answer_text = "I don't know based on the provided information."
+        grounded = False
+        support_reason = (
+            "No retrieved chunk contained enough overlapping terms to support the answer."
+            if assembled_context["chunks"]
+            else "No retrieved context was provided."
+        )
+        top_context = None
+    else:
+        top_context = assembled_context["chunks"][0]
+        answer_text = (
+            f"According to {top_context['marker']} ({top_context['source']}), "
+            f"{top_context['text']}"
+        )
+        grounded = True
+        support_reason = f"Supported by markers {supporting_markers}."
 
     return {
         "query": query,
         "prompt": prompt,
         "generated_answer": answer_text,
+        "grounded": grounded,
+        "source_accuracy": {
+            "uses_only_context": grounded,
+            "supporting_markers": supporting_markers,
+            "support_reason": support_reason,
+        },
         "sources": [
             {
                 "rank": item["rank"],
@@ -268,6 +313,45 @@ def build_payload(
     }
 
 
+def build_without_retrieval_payload(query: str) -> dict[str, Any]:
+    empty_context = {
+        "chunks": [],
+        "context_text": "",
+        "context_token_count": 0,
+        "remaining_token_budget": MODEL_CONTEXT_TOKEN_BUDGET - RESERVED_PROMPT_TOKENS,
+        "max_context_tokens": MODEL_CONTEXT_TOKEN_BUDGET,
+        "reserved_tokens": RESERVED_PROMPT_TOKENS,
+    }
+
+    generated = generate_answer(query, empty_context)
+
+    return {
+        "query": query,
+        "retrieval_enabled": False,
+        "retrieved_chunks": [],
+        "assembled_context": empty_context,
+        "generated_answer": generated,
+    }
+
+
+def build_grounding_comparison() -> dict[str, Any]:
+    baseline_query = SAMPLE_QUERY
+    no_context_query = "What is the company policy for flexible work schedules?"
+
+    with_retrieval = build_payload(baseline_query, top_k=TOP_K)
+    without_retrieval = build_without_retrieval_payload(baseline_query)
+    missing_context_case = build_payload(no_context_query, top_k=TOP_K)
+
+    return {
+        "title": "Grounding comparison: with retrieval vs without retrieval",
+        "baseline_query": baseline_query,
+        "missing_context_query": no_context_query,
+        "with_retrieval": with_retrieval,
+        "without_retrieval": without_retrieval,
+        "missing_context_case": missing_context_case,
+    }
+
+
 def build_text_report(payload: dict[str, Any]) -> str:
     lines = [
         "QUERY-TO-ANSWER RAG FLOW DEMO",
@@ -278,19 +362,45 @@ def build_text_report(payload: dict[str, Any]) -> str:
         "3. assemble_context - package the top-ranked chunks with metadata, source markers, and a token budget.",
         "4. generate_answer - return an answer grounded in the chosen sources via a prompt with explicit grounding instructions.",
         "",
-        f"Sample query: {payload['query']}",
-        f"Top-k used: {payload['top_k']}",
-        f"Query vector: {payload['query_vector']}",
-        f"Context token budget: {payload['assembled_context']['max_context_tokens']}",
-        f"Reserved prompt tokens: {payload['assembled_context']['reserved_tokens']}",
-        f"Context tokens used: {payload['assembled_context']['context_token_count']}",
-        f"Remaining token budget: {payload['assembled_context']['remaining_token_budget']}",
-        "",
-        "PROMPT CONTEXT INJECTED INTO MODEL",
+        "GROUNDING COMPARISON",
         "-" * 70,
     ]
 
-    lines.append(payload["generated_answer"]["prompt"])
+    for label, result in (
+        ("WITH RETRIEVAL", payload["with_retrieval"]),
+        ("WITHOUT RETRIEVAL", payload["without_retrieval"]),
+        ("MISSING CONTEXT CASE", payload["missing_context_case"]),
+    ):
+        lines.extend(
+            [
+                f"{label}",
+                f"- Query: {result['query']}",
+                f"- Grounded: {result['generated_answer']['grounded']}",
+                f"- Answer: {result['generated_answer']['generated_answer']}",
+                f"- Source accuracy: {result['generated_answer']['source_accuracy']}",
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
+            "WITH RETRIEVAL DETAIL",
+            "-" * 70,
+        ]
+    )
+
+    current = payload["with_retrieval"]
+    lines.append(f"Sample query: {current['query']}")
+    lines.append(f"Top-k used: {current['top_k']}")
+    lines.append(f"Query vector: {current['query_vector']}")
+    lines.append(f"Context token budget: {current['assembled_context']['max_context_tokens']}")
+    lines.append(f"Reserved prompt tokens: {current['assembled_context']['reserved_tokens']}")
+    lines.append(f"Context tokens used: {current['assembled_context']['context_token_count']}")
+    lines.append(f"Remaining token budget: {current['assembled_context']['remaining_token_budget']}")
+    lines.append("")
+    lines.append("PROMPT CONTEXT INJECTED INTO MODEL")
+    lines.append("-" * 70)
+    lines.append(current["generated_answer"]["prompt"])
 
     lines.extend(
         [
@@ -300,7 +410,7 @@ def build_text_report(payload: dict[str, Any]) -> str:
         ]
     )
 
-    for item in payload["assembled_context"]["chunks"]:
+    for item in current["assembled_context"]["chunks"]:
         lines.append(
             f"Rank {item['rank']}: marker={item['marker']} | section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
         )
@@ -310,14 +420,14 @@ def build_text_report(payload: dict[str, Any]) -> str:
             "",
             "GENERATED ANSWER",
             "-" * 70,
-            payload["generated_answer"]["generated_answer"],
+            current["generated_answer"]["generated_answer"],
             "",
             "RETURNED SOURCES",
             "-" * 70,
         ]
     )
 
-    for item in payload["generated_answer"]["sources"]:
+    for item in current["generated_answer"]["sources"]:
         lines.append(
             f"Rank {item['rank']}: marker={item['marker']} | section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
         )
@@ -328,18 +438,19 @@ def build_text_report(payload: dict[str, Any]) -> str:
 def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    payload = build_payload(SAMPLE_QUERY, top_k=TOP_K)
+    payload = build_grounding_comparison()
 
     RESULT_FILE.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     RESULT_TEXT_FILE.write_text(build_text_report(payload), encoding="utf-8")
 
     print(f"Saved pipeline results to {RESULT_FILE}")
     print(f"Saved readable pipeline report to {RESULT_TEXT_FILE}")
-    print("\nGenerated answer:")
-    print(payload["generated_answer"]["generated_answer"])
-    print("\nReturned sources:")
-    for source in payload["generated_answer"]["sources"]:
-        print(f"- {source['section']} ({source['source']}): {source['text']}")
+    print("\nWith retrieval answer:")
+    print(payload["with_retrieval"]["generated_answer"]["generated_answer"])
+    print("\nWithout retrieval answer:")
+    print(payload["without_retrieval"]["generated_answer"]["generated_answer"])
+    print("\nMissing-context fallback answer:")
+    print(payload["missing_context_case"]["generated_answer"]["generated_answer"])
 
 
 if __name__ == "__main__":
