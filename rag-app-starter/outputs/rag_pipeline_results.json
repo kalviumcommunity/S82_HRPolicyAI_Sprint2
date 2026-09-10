@@ -42,38 +42,53 @@
       }
     }
   ],
-  "assembled_context": [
-    {
-      "rank": 1,
-      "score": 1.0,
-      "section": "Requesting leave",
-      "source": "sample_leave_policy.txt",
-      "chunk_index": 1,
-      "text": "Leave requests should be submitted to a manager at least two weeks in advance."
-    },
-    {
-      "rank": 2,
-      "score": 0.771,
-      "section": "Performance reviews",
-      "source": "sample_performance_policy.txt",
-      "chunk_index": 5,
-      "text": "Performance reviews are scheduled annually for all managers in November."
-    },
-    {
-      "rank": 3,
-      "score": 0.7396,
-      "section": "Annual leave",
-      "source": "sample_leave_policy.txt",
-      "chunk_index": 0,
-      "text": "Employees may take up to 20 days of paid annual leave each year."
-    }
-  ],
+  "assembled_context": {
+    "chunks": [
+      {
+        "rank": 1,
+        "marker": "[1]",
+        "score": 1.0,
+        "section": "Requesting leave",
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 1,
+        "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+        "block_text": "[1] Requesting leave (sample_leave_policy.txt)\nLeave requests should be submitted to a manager at least two weeks in advance."
+      },
+      {
+        "rank": 2,
+        "marker": "[2]",
+        "score": 0.771,
+        "section": "Performance reviews",
+        "source": "sample_performance_policy.txt",
+        "chunk_index": 5,
+        "text": "Performance reviews are scheduled annually for all managers in November.",
+        "block_text": "[2] Performance reviews (sample_performance_policy.txt)\nPerformance reviews are scheduled annually for all managers in November."
+      },
+      {
+        "rank": 3,
+        "marker": "[3]",
+        "score": 0.7396,
+        "section": "Annual leave",
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 0,
+        "text": "Employees may take up to 20 days of paid annual leave each year.",
+        "block_text": "[3] Annual leave (sample_leave_policy.txt)\nEmployees may take up to 20 days of paid annual leave each year."
+      }
+    ],
+    "context_text": "[1] Requesting leave (sample_leave_policy.txt)\nLeave requests should be submitted to a manager at least two weeks in advance.\n\n[2] Performance reviews (sample_performance_policy.txt)\nPerformance reviews are scheduled annually for all managers in November.\n\n[3] Annual leave (sample_leave_policy.txt)\nEmployees may take up to 20 days of paid annual leave each year.",
+    "context_token_count": 49,
+    "remaining_token_budget": 131,
+    "max_context_tokens": 300,
+    "reserved_tokens": 120
+  },
   "generated_answer": {
     "query": "How should a leave request be submitted?",
-    "generated_answer": "According to the Requesting leave policy section (sample_leave_policy.txt), Leave requests should be submitted to a manager at least two weeks in advance.",
+    "prompt": "\nYou are a helpful RAG support assistant.\n\nGrounding instructions:\n1. Use ONLY the information in the provided context.\n2. When the context contains the answer, respond using that information and reference the relevant source markers such as [1], [2], or the source filenames shown in the context.\n3. If the context does not contain enough information, say: \"I don't know based on the provided information.\" Do not guess or invent policy details.\n4. Keep the answer concise, accurate, and grounded in the supplied sources.\n\nContext:\n[1] Requesting leave (sample_leave_policy.txt)\nLeave requests should be submitted to a manager at least two weeks in advance.\n\n[2] Performance reviews (sample_performance_policy.txt)\nPerformance reviews are scheduled annually for all managers in November.\n\n[3] Annual leave (sample_leave_policy.txt)\nEmployees may take up to 20 days of paid annual leave each year.\n\nQuestion:\nHow should a leave request be submitted?\n",
+    "generated_answer": "According to [1] (sample_leave_policy.txt), Leave requests should be submitted to a manager at least two weeks in advance.",
     "sources": [
       {
         "rank": 1,
+        "marker": "[1]",
         "section": "Requesting leave",
         "source": "sample_leave_policy.txt",
         "chunk_index": 1,
@@ -82,6 +97,7 @@
       },
       {
         "rank": 2,
+        "marker": "[2]",
         "section": "Performance reviews",
         "source": "sample_performance_policy.txt",
         "chunk_index": 5,
@@ -90,6 +106,7 @@
       },
       {
         "rank": 3,
+        "marker": "[3]",
         "section": "Annual leave",
         "source": "sample_leave_policy.txt",
         "chunk_index": 0,
