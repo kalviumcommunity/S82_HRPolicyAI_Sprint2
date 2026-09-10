@@ -11,7 +11,7 @@
   "labelled_queries": [
     {
       "id": "Q1",
-      "query": "How many paid annual leave days can an employee take?",
+      "query": "How many paid annual leave days can an employee take? ",
       "expected_chunk_ids": [
         0
       ],

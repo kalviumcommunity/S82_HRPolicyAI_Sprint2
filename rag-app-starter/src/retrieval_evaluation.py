@@ -11,7 +11,7 @@ RESULT_TEXT_FILE = OUTPUT_DIR / "retrieval_evaluation_results.txt"
 
 CORPUS = [
     {
-        "text": "Employees may take up to 20 days of paid annual leave each year.",
+        "text": "Employees may take up to 20 days of paid annual leave each year. ",
         "metadata": {
             "source": "sample_leave_policy.txt",
             "section": "Annual leave",
