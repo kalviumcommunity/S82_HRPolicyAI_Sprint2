@@ -1,0 +1,606 @@
+{
+  "evaluation_configuration": {
+    "candidate_count": 5,
+    "k_values": [
+      1,
+      3,
+      5
+    ],
+    "retrieval_type": "deterministic cosine similarity over sample corpus"
+  },
+  "labelled_queries": [
+    {
+      "id": "Q1",
+      "query": "How many paid annual leave days can an employee take?",
+      "expected_chunk_ids": [
+        0
+      ],
+      "expected_sections": [
+        "Annual leave"
+      ],
+      "keywords": [
+        "annual",
+        "leave",
+        "paid",
+        "days"
+      ],
+      "query_vector": [
+        1.0,
+        0.2,
+        0.0,
+        0.0
+      ],
+      "notes": "Exact match to the annual leave chunk; ideal baseline case.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q2",
+      "query": "How should a leave request be submitted?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "keywords": [
+        "leave",
+        "request",
+        "submitted",
+        "manager"
+      ],
+      "query_vector": [
+        0.7,
+        0.95,
+        0.0,
+        0.0
+      ],
+      "notes": "Exact match to the requesting-leave policy chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q3",
+      "query": "How much paid sick leave do employees receive annually?",
+      "expected_chunk_ids": [
+        2
+      ],
+      "expected_sections": [
+        "Sick leave"
+      ],
+      "keywords": [
+        "paid",
+        "sick",
+        "leave",
+        "annually"
+      ],
+      "query_vector": [
+        0.55,
+        0.3,
+        1.0,
+        0.0
+      ],
+      "notes": "Exact match to the sick leave chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q4",
+      "query": "What is the paid parental leave entitlement for primary caregivers?",
+      "expected_chunk_ids": [
+        3
+      ],
+      "expected_sections": [
+        "Parental leave"
+      ],
+      "keywords": [
+        "parental",
+        "leave",
+        "primary",
+        "caregivers"
+      ],
+      "query_vector": [
+        0.45,
+        0.1,
+        0.0,
+        1.0
+      ],
+      "notes": "Exact match to the parental leave chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q5",
+      "query": "When do I need to ask my manager for approval before taking leave?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "keywords": [
+        "manager",
+        "approval",
+        "leave",
+        "before"
+      ],
+      "query_vector": [
+        0.68,
+        0.92,
+        0.0,
+        0.0
+      ],
+      "notes": "Paraphrased version of the leave request guidance; useful for testing lexical robustness.",
+      "likely_failure_causes": [
+        "Paraphrased query wording can weaken lexical overlap.",
+        "If the target chunk does not rise in the ranking, the likely cause is query wording or embedding mismatch."
+      ]
+    },
+    {
+      "id": "Q6",
+      "query": "What is the process for renewing a parking permit?",
+      "expected_chunk_ids": [
+        4
+      ],
+      "expected_sections": [
+        "Parking"
+      ],
+      "keywords": [
+        "parking",
+        "permit",
+        "renew",
+        "process"
+      ],
+      "query_vector": [
+        0.0,
+        0.0,
+        0.8,
+        0.0
+      ],
+      "notes": "Intentional mismatch query to demonstrate a low-scoring failure case and highlight likely causes such as embedding mismatch.",
+      "likely_failure_causes": [
+        "The query vector is intentionally misaligned with the target parking chunk.",
+        "This case likely fails because the retrieval system is not using the right query embedding or the query text is too generic for the target chunk."
+      ]
+    }
+  ],
+  "query_results": [
+    {
+      "id": "Q1",
+      "query": "How many paid annual leave days can an employee take?",
+      "expected_chunk_ids": [
+        0
+      ],
+      "expected_sections": [
+        "Annual leave"
+      ],
+      "notes": "Exact match to the annual leave chunk; ideal baseline case.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 1.0,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 4,
+          "section": "Parking",
+          "score": 0.9999,
+          "text": "Parking permits must be renewed annually before the end of the month."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.992,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 0.7396,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 2,
+          "section": "Sick leave",
+          "score": 0.5069,
+          "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+        }
+      ],
+      "recall_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      },
+      "precision_at_k": {
+        "1": 1.0,
+        "3": 0.3333,
+        "5": 0.2
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 0,
+        "section": "Annual leave",
+        "score": 1.0,
+        "text": "Employees may take up to 20 days of paid annual leave each year."
+      },
+      "failure_analysis": [
+        "No obvious failure: the expected chunk is retrieved and ranked as expected."
+      ]
+    },
+    {
+      "id": "Q2",
+      "query": "How should a leave request be submitted?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "notes": "Exact match to the requesting-leave policy chunk.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 1.0,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.771,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 0.7396,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 4,
+          "section": "Parking",
+          "score": 0.7327,
+          "text": "Parking permits must be renewed annually before the end of the month."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 2,
+          "section": "Sick leave",
+          "score": 0.4811,
+          "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+        }
+      ],
+      "recall_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      },
+      "precision_at_k": {
+        "1": 1.0,
+        "3": 0.3333,
+        "5": 0.2
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 1,
+        "section": "Requesting leave",
+        "score": 1.0,
+        "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+      },
+      "failure_analysis": [
+        "No obvious failure: the expected chunk is retrieved and ranked as expected."
+      ]
+    },
+    {
+      "id": "Q3",
+      "query": "How much paid sick leave do employees receive annually?",
+      "expected_chunk_ids": [
+        2
+      ],
+      "expected_sections": [
+        "Sick leave"
+      ],
+      "notes": "Exact match to the sick leave chunk.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 2,
+          "section": "Sick leave",
+          "score": 1.0,
+          "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.6075,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 0.5069,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 4,
+          "section": "Parking",
+          "score": 0.5053,
+          "text": "Parking permits must be renewed annually before the end of the month."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 0.4811,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        }
+      ],
+      "recall_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      },
+      "precision_at_k": {
+        "1": 1.0,
+        "3": 0.3333,
+        "5": 0.2
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 2,
+        "section": "Sick leave",
+        "score": 1.0,
+        "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+      },
+      "failure_analysis": [
+        "No obvious failure: the expected chunk is retrieved and ranked as expected."
+      ]
+    },
+    {
+      "id": "Q4",
+      "query": "What is the paid parental leave entitlement for primary caregivers?",
+      "expected_chunk_ids": [
+        3
+      ],
+      "expected_sections": [
+        "Parental leave"
+      ],
+      "notes": "Exact match to the parental leave chunk.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 3,
+          "section": "Parental leave",
+          "score": 1.0,
+          "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 0.4185,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 4,
+          "section": "Parking",
+          "score": 0.4184,
+          "text": "Parking permits must be renewed annually before the end of the month."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.4157,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 0.3155,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        }
+      ],
+      "recall_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      },
+      "precision_at_k": {
+        "1": 1.0,
+        "3": 0.3333,
+        "5": 0.2
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 3,
+        "section": "Parental leave",
+        "score": 1.0,
+        "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+      },
+      "failure_analysis": [
+        "No obvious failure: the expected chunk is retrieved and ranked as expected."
+      ]
+    },
+    {
+      "id": "Q5",
+      "query": "When do I need to ask my manager for approval before taking leave?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "notes": "Paraphrased version of the leave request guidance; useful for testing lexical robustness.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 1.0,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.7719,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 0.7406,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 4,
+          "section": "Parking",
+          "score": 0.7337,
+          "text": "Parking permits must be renewed annually before the end of the month."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 2,
+          "section": "Sick leave",
+          "score": 0.4815,
+          "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+        }
+      ],
+      "recall_at_k": {
+        "1": 1.0,
+        "3": 1.0,
+        "5": 1.0
+      },
+      "precision_at_k": {
+        "1": 1.0,
+        "3": 0.3333,
+        "5": 0.2
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 1,
+        "section": "Requesting leave",
+        "score": 1.0,
+        "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+      },
+      "failure_analysis": [
+        "Paraphrased query wording can weaken lexical overlap.",
+        "If the target chunk does not rise in the ranking, the likely cause is query wording or embedding mismatch."
+      ]
+    },
+    {
+      "id": "Q6",
+      "query": "What is the process for renewing a parking permit?",
+      "expected_chunk_ids": [
+        4
+      ],
+      "expected_sections": [
+        "Parking"
+      ],
+      "notes": "Intentional mismatch query to demonstrate a low-scoring failure case and highlight likely causes such as embedding mismatch.",
+      "retrieved": [
+        {
+          "rank": 1,
+          "chunk_index": 2,
+          "section": "Sick leave",
+          "score": 0.8474,
+          "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+        },
+        {
+          "rank": 2,
+          "chunk_index": 5,
+          "section": "Performance reviews",
+          "score": 0.1132,
+          "text": "Performance reviews are scheduled annually for all managers in November."
+        },
+        {
+          "rank": 3,
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "score": 0.0,
+          "text": "Employees may take up to 20 days of paid annual leave each year."
+        },
+        {
+          "rank": 4,
+          "chunk_index": 1,
+          "section": "Requesting leave",
+          "score": 0.0,
+          "text": "Leave requests should be submitted to a manager at least two weeks in advance."
+        },
+        {
+          "rank": 5,
+          "chunk_index": 3,
+          "section": "Parental leave",
+          "score": 0.0,
+          "text": "Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave."
+        }
+      ],
+      "recall_at_k": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0
+      },
+      "precision_at_k": {
+        "1": 0.0,
+        "3": 0.0,
+        "5": 0.0
+      },
+      "top_1": {
+        "rank": 1,
+        "chunk_index": 2,
+        "section": "Sick leave",
+        "score": 0.8474,
+        "text": "All employees receive 10 days of paid sick leave annually on January 1st."
+      },
+      "failure_analysis": [
+        "Expected chunk is missing from the top-5 results, which usually points to query wording, embedding mismatch, or a retrieval setup issue.",
+        "The top-ranked chunk is not the expected chunk; this often means the query vector or keyword weighting is not aligned with the target chunk.",
+        "The query vector is intentionally misaligned with the target parking chunk.",
+        "This case likely fails because the retrieval system is not using the right query embedding or the query text is too generic for the target chunk."
+      ]
+    }
+  ],
+  "average_metrics": {
+    "1": {
+      "average_recall": 0.8333,
+      "average_precision": 0.8333
+    },
+    "3": {
+      "average_recall": 0.8333,
+      "average_precision": 0.2777
+    },
+    "5": {
+      "average_recall": 0.8333,
+      "average_precision": 0.1667
+    }
+  },
+  "failed_queries": [
+    "Q6"
+  ],
+  "failure_summary": [
+    {
+      "id": "Q6",
+      "query": "What is the process for renewing a parking permit?",
+      "likely_causes": [
+        "Expected chunk is missing from the top-5 results, which usually points to query wording, embedding mismatch, or a retrieval setup issue.",
+        "The top-ranked chunk is not the expected chunk; this often means the query vector or keyword weighting is not aligned with the target chunk.",
+        "The query vector is intentionally misaligned with the target parking chunk.",
+        "This case likely fails because the retrieval system is not using the right query embedding or the query text is too generic for the target chunk."
+      ]
+    }
+  ]
+}

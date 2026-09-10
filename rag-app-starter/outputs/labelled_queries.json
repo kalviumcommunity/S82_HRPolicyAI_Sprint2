@@ -1,0 +1,155 @@
+{
+  "description": "Labelled retrieval evaluation queries for the deterministic HRPolicyAI sample corpus.",
+  "queries": [
+    {
+      "id": "Q1",
+      "query": "How many paid annual leave days can an employee take?",
+      "expected_chunk_ids": [
+        0
+      ],
+      "expected_sections": [
+        "Annual leave"
+      ],
+      "keywords": [
+        "annual",
+        "leave",
+        "paid",
+        "days"
+      ],
+      "query_vector": [
+        1.0,
+        0.2,
+        0.0,
+        0.0
+      ],
+      "notes": "Exact match to the annual leave chunk; ideal baseline case.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q2",
+      "query": "How should a leave request be submitted?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "keywords": [
+        "leave",
+        "request",
+        "submitted",
+        "manager"
+      ],
+      "query_vector": [
+        0.7,
+        0.95,
+        0.0,
+        0.0
+      ],
+      "notes": "Exact match to the requesting-leave policy chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q3",
+      "query": "How much paid sick leave do employees receive annually?",
+      "expected_chunk_ids": [
+        2
+      ],
+      "expected_sections": [
+        "Sick leave"
+      ],
+      "keywords": [
+        "paid",
+        "sick",
+        "leave",
+        "annually"
+      ],
+      "query_vector": [
+        0.55,
+        0.3,
+        1.0,
+        0.0
+      ],
+      "notes": "Exact match to the sick leave chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q4",
+      "query": "What is the paid parental leave entitlement for primary caregivers?",
+      "expected_chunk_ids": [
+        3
+      ],
+      "expected_sections": [
+        "Parental leave"
+      ],
+      "keywords": [
+        "parental",
+        "leave",
+        "primary",
+        "caregivers"
+      ],
+      "query_vector": [
+        0.45,
+        0.1,
+        0.0,
+        1.0
+      ],
+      "notes": "Exact match to the parental leave chunk.",
+      "likely_failure_causes": []
+    },
+    {
+      "id": "Q5",
+      "query": "When do I need to ask my manager for approval before taking leave?",
+      "expected_chunk_ids": [
+        1
+      ],
+      "expected_sections": [
+        "Requesting leave"
+      ],
+      "keywords": [
+        "manager",
+        "approval",
+        "leave",
+        "before"
+      ],
+      "query_vector": [
+        0.68,
+        0.92,
+        0.0,
+        0.0
+      ],
+      "notes": "Paraphrased version of the leave request guidance; useful for testing lexical robustness.",
+      "likely_failure_causes": [
+        "Paraphrased query wording can weaken lexical overlap.",
+        "If the target chunk does not rise in the ranking, the likely cause is query wording or embedding mismatch."
+      ]
+    },
+    {
+      "id": "Q6",
+      "query": "What is the process for renewing a parking permit?",
+      "expected_chunk_ids": [
+        4
+      ],
+      "expected_sections": [
+        "Parking"
+      ],
+      "keywords": [
+        "parking",
+        "permit",
+        "renew",
+        "process"
+      ],
+      "query_vector": [
+        0.0,
+        0.0,
+        0.8,
+        0.0
+      ],
+      "notes": "Intentional mismatch query to demonstrate a low-scoring failure case and highlight likely causes such as embedding mismatch.",
+      "likely_failure_causes": [
+        "The query vector is intentionally misaligned with the target parking chunk.",
+        "This case likely fails because the retrieval system is not using the right query embedding or the query text is too generic for the target chunk."
+      ]
+    }
+  ]
+}

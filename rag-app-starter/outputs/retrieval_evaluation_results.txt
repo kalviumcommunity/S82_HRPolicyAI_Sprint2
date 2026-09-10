@@ -1,0 +1,98 @@
+RETRIEVAL EVALUATION REPORT
+======================================================================
+Labelled query set:
+- Q1: How many paid annual leave days can an employee take? | expected chunk(s) [0] | notes: Exact match to the annual leave chunk; ideal baseline case.
+- Q2: How should a leave request be submitted? | expected chunk(s) [1] | notes: Exact match to the requesting-leave policy chunk.
+- Q3: How much paid sick leave do employees receive annually? | expected chunk(s) [2] | notes: Exact match to the sick leave chunk.
+- Q4: What is the paid parental leave entitlement for primary caregivers? | expected chunk(s) [3] | notes: Exact match to the parental leave chunk.
+- Q5: When do I need to ask my manager for approval before taking leave? | expected chunk(s) [1] | notes: Paraphrased version of the leave request guidance; useful for testing lexical robustness.
+- Q6: What is the process for renewing a parking permit? | expected chunk(s) [4] | notes: Intentional mismatch query to demonstrate a low-scoring failure case and highlight likely causes such as embedding mismatch.
+
+AVERAGE METRICS
+----------------------------------------------------------------------
+Recall@1: 0.8333 | Precision@1: 0.8333
+Recall@3: 0.8333 | Precision@3: 0.2777
+Recall@5: 0.8333 | Precision@5: 0.1667
+
+PER-QUERY RESULTS
+----------------------------------------------------------------------
+Query Q1: How many paid annual leave days can an employee take?
+  Expected chunks: [0] | Top-1 chunk: 0
+  Recall@1: 1.0000 | Recall@3: 1.0000 | Recall@5: 1.0000
+  Precision@1: 1.0000 | Precision@3: 0.3333 | Precision@5: 0.2000
+  Failure analysis: No obvious failure: the expected chunk is retrieved and ranked as expected.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=0 | section=Annual leave | score=1.0000 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=2 | chunk_index=4 | section=Parking | score=0.9999 | text=Parking permits must be renewed annually before the end of the month.
+    - rank=3 | chunk_index=5 | section=Performance reviews | score=0.9920 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=4 | chunk_index=1 | section=Requesting leave | score=0.7396 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+    - rank=5 | chunk_index=2 | section=Sick leave | score=0.5069 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+
+Query Q2: How should a leave request be submitted?
+  Expected chunks: [1] | Top-1 chunk: 1
+  Recall@1: 1.0000 | Recall@3: 1.0000 | Recall@5: 1.0000
+  Precision@1: 1.0000 | Precision@3: 0.3333 | Precision@5: 0.2000
+  Failure analysis: No obvious failure: the expected chunk is retrieved and ranked as expected.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=1 | section=Requesting leave | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+    - rank=2 | chunk_index=5 | section=Performance reviews | score=0.7710 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=3 | chunk_index=0 | section=Annual leave | score=0.7396 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=4 | chunk_index=4 | section=Parking | score=0.7327 | text=Parking permits must be renewed annually before the end of the month.
+    - rank=5 | chunk_index=2 | section=Sick leave | score=0.4811 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+
+Query Q3: How much paid sick leave do employees receive annually?
+  Expected chunks: [2] | Top-1 chunk: 2
+  Recall@1: 1.0000 | Recall@3: 1.0000 | Recall@5: 1.0000
+  Precision@1: 1.0000 | Precision@3: 0.3333 | Precision@5: 0.2000
+  Failure analysis: No obvious failure: the expected chunk is retrieved and ranked as expected.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=2 | section=Sick leave | score=1.0000 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+    - rank=2 | chunk_index=5 | section=Performance reviews | score=0.6075 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=3 | chunk_index=0 | section=Annual leave | score=0.5069 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=4 | chunk_index=4 | section=Parking | score=0.5053 | text=Parking permits must be renewed annually before the end of the month.
+    - rank=5 | chunk_index=1 | section=Requesting leave | score=0.4811 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+
+Query Q4: What is the paid parental leave entitlement for primary caregivers?
+  Expected chunks: [3] | Top-1 chunk: 3
+  Recall@1: 1.0000 | Recall@3: 1.0000 | Recall@5: 1.0000
+  Precision@1: 1.0000 | Precision@3: 0.3333 | Precision@5: 0.2000
+  Failure analysis: No obvious failure: the expected chunk is retrieved and ranked as expected.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=3 | section=Parental leave | score=1.0000 | text=Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.
+    - rank=2 | chunk_index=0 | section=Annual leave | score=0.4185 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=3 | chunk_index=4 | section=Parking | score=0.4184 | text=Parking permits must be renewed annually before the end of the month.
+    - rank=4 | chunk_index=5 | section=Performance reviews | score=0.4157 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=5 | chunk_index=1 | section=Requesting leave | score=0.3155 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+
+Query Q5: When do I need to ask my manager for approval before taking leave?
+  Expected chunks: [1] | Top-1 chunk: 1
+  Recall@1: 1.0000 | Recall@3: 1.0000 | Recall@5: 1.0000
+  Precision@1: 1.0000 | Precision@3: 0.3333 | Precision@5: 0.2000
+  Failure analysis: Paraphrased query wording can weaken lexical overlap.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=1 | section=Requesting leave | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+    - rank=2 | chunk_index=5 | section=Performance reviews | score=0.7719 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=3 | chunk_index=0 | section=Annual leave | score=0.7406 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=4 | chunk_index=4 | section=Parking | score=0.7337 | text=Parking permits must be renewed annually before the end of the month.
+    - rank=5 | chunk_index=2 | section=Sick leave | score=0.4815 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+
+Query Q6: What is the process for renewing a parking permit?
+  Expected chunks: [4] | Top-1 chunk: 2
+  Recall@1: 0.0000 | Recall@3: 0.0000 | Recall@5: 0.0000
+  Precision@1: 0.0000 | Precision@3: 0.0000 | Precision@5: 0.0000
+  Failure analysis: Expected chunk is missing from the top-5 results, which usually points to query wording, embedding mismatch, or a retrieval setup issue.
+  Top retrieved chunks:
+    - rank=1 | chunk_index=2 | section=Sick leave | score=0.8474 | text=All employees receive 10 days of paid sick leave annually on January 1st.
+    - rank=2 | chunk_index=5 | section=Performance reviews | score=0.1132 | text=Performance reviews are scheduled annually for all managers in November.
+    - rank=3 | chunk_index=0 | section=Annual leave | score=0.0000 | text=Employees may take up to 20 days of paid annual leave each year.
+    - rank=4 | chunk_index=1 | section=Requesting leave | score=0.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+    - rank=5 | chunk_index=3 | section=Parental leave | score=0.0000 | text=Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave.
+
+FAILED OR LOW-SCORING CASES
+----------------------------------------------------------------------
+- Q6: What is the process for renewing a parking permit?
+  * Expected chunk is missing from the top-5 results, which usually points to query wording, embedding mismatch, or a retrieval setup issue.
+  * The top-ranked chunk is not the expected chunk; this often means the query vector or keyword weighting is not aligned with the target chunk.
+  * The query vector is intentionally misaligned with the target parking chunk.
+  * This case likely fails because the retrieval system is not using the right query embedding or the query text is too generic for the target chunk.
+
