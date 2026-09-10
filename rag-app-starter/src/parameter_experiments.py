@@ -29,7 +29,7 @@ def run_parameter_experiments():
     print("--- Model Parameters & Output Control Experiments ---")
     
     # Task 1: Vary temperature
-    print("\n[Task 1] Testing Temperature:")
+    print("\n[Task 1] Testing Temperature: ")
     results["temperature"] = {}
     for temp in [0.0, 1.0]:
         print(f"\nRunning with temperature={temp}...")
