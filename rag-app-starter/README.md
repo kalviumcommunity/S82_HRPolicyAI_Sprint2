@@ -38,6 +38,14 @@ vector similarity with lexical overlap. The generated artifacts in
 `outputs/reranking_results.json` and `outputs/reranking_results.txt` show the
 before-and-after ordering, the candidate set, and the final selected chunks.
 
+To run a labelled retrieval evaluation, use `python src/retrieval_evaluation.py`.
+This script stores a labelled query set in `outputs/labelled_queries.json`, then
+measures recall@1/3/5 and precision@1/3/5 across the deterministic sample
+corpus. The evaluation also records likely failure causes for any query that
+misses the expected chunk or scores poorly, and writes the full results to
+`outputs/retrieval_evaluation_results.json` and
+`outputs/retrieval_evaluation_results.txt`.
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and

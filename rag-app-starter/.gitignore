@@ -44,6 +44,9 @@ outputs/*
 !outputs/reranking_results.txt
 !outputs/filtered_search_results.json
 !outputs/filtered_search_results.txt
+!outputs/labelled_queries.json
+!outputs/retrieval_evaluation_results.json
+!outputs/retrieval_evaluation_results.txt
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
