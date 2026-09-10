@@ -3,25 +3,54 @@ QUERY-TO-ANSWER RAG FLOW DEMO
 Flow overview:
 1. embed_query - create a query vector from the incoming user question.
 2. retrieve_candidates - score corpus chunks against that vector.
-3. assemble_context - package the top-ranked chunks with metadata for generation.
-4. generate_answer - return an answer grounded in the chosen sources.
+3. assemble_context - package the top-ranked chunks with metadata, source markers, and a token budget.
+4. generate_answer - return an answer grounded in the chosen sources via a prompt with explicit grounding instructions.
 
 Sample query: How should a leave request be submitted?
 Top-k used: 3
 Query vector: [0.7, 0.95, 0.0, 0.0]
+Context token budget: 300
+Reserved prompt tokens: 120
+Context tokens used: 49
+Remaining token budget: 131
+
+PROMPT CONTEXT INJECTED INTO MODEL
+----------------------------------------------------------------------
+
+You are a helpful RAG support assistant.
+
+Grounding instructions:
+1. Use ONLY the information in the provided context.
+2. When the context contains the answer, respond using that information and reference the relevant source markers such as [1], [2], or the source filenames shown in the context.
+3. If the context does not contain enough information, say: "I don't know based on the provided information." Do not guess or invent policy details.
+4. Keep the answer concise, accurate, and grounded in the supplied sources.
+
+Context:
+[1] Requesting leave (sample_leave_policy.txt)
+Leave requests should be submitted to a manager at least two weeks in advance.
+
+[2] Performance reviews (sample_performance_policy.txt)
+Performance reviews are scheduled annually for all managers in November.
+
+[3] Annual leave (sample_leave_policy.txt)
+Employees may take up to 20 days of paid annual leave each year.
+
+Question:
+How should a leave request be submitted?
+
 
 RETRIEVED SOURCES
 ----------------------------------------------------------------------
-Rank 1: section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
-Rank 2: section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | score=0.7710 | text=Performance reviews are scheduled annually for all managers in November.
-Rank 3: section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | score=0.7396 | text=Employees may take up to 20 days of paid annual leave each year.
+Rank 1: marker=[1] | section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 2: marker=[2] | section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | score=0.7710 | text=Performance reviews are scheduled annually for all managers in November.
+Rank 3: marker=[3] | section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | score=0.7396 | text=Employees may take up to 20 days of paid annual leave each year.
 
 GENERATED ANSWER
 ----------------------------------------------------------------------
-According to the Requesting leave policy section (sample_leave_policy.txt), Leave requests should be submitted to a manager at least two weeks in advance.
+According to [1] (sample_leave_policy.txt), Leave requests should be submitted to a manager at least two weeks in advance.
 
 RETURNED SOURCES
 ----------------------------------------------------------------------
-Rank 1: section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
-Rank 2: section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | score=0.7710 | text=Performance reviews are scheduled annually for all managers in November.
-Rank 3: section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | score=0.7396 | text=Employees may take up to 20 days of paid annual leave each year.
+Rank 1: marker=[1] | section=Requesting leave | source=sample_leave_policy.txt | chunk_index=1 | score=1.0000 | text=Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 2: marker=[2] | section=Performance reviews | source=sample_performance_policy.txt | chunk_index=5 | score=0.7710 | text=Performance reviews are scheduled annually for all managers in November.
+Rank 3: marker=[3] | section=Annual leave | source=sample_leave_policy.txt | chunk_index=0 | score=0.7396 | text=Employees may take up to 20 days of paid annual leave each year.

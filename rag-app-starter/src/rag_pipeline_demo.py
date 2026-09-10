@@ -1,6 +1,13 @@
 import json
+import sys
 from pathlib import Path
 from typing import Any
+
+PROJECT_ROOT = Path(__file__).parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from prompts.answer import render_answer_prompt
 
 PROJECT_ROOT = Path(__file__).parent.parent
 OUTPUT_DIR = PROJECT_ROOT / "outputs"
@@ -10,6 +17,8 @@ RESULT_TEXT_FILE = OUTPUT_DIR / "rag_pipeline_results.txt"
 
 SAMPLE_QUERY = "How should a leave request be submitted?"
 TOP_K = 3
+MODEL_CONTEXT_TOKEN_BUDGET = 300
+RESERVED_PROMPT_TOKENS = 120
 
 
 CORPUS = [
@@ -137,62 +146,116 @@ def retrieve_candidates(query_vector: list[float], top_k: int = TOP_K) -> list[d
     return candidates[:top_k]
 
 
-def assemble_context(retrieved: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def estimate_token_count(text: str) -> int:
+    return max(1, len(text.split()))
+
+
+def assemble_context(
+    retrieved: list[dict[str, Any]],
+    max_context_tokens: int = MODEL_CONTEXT_TOKEN_BUDGET,
+    reserved_tokens: int = RESERVED_PROMPT_TOKENS,
+) -> dict[str, Any]:
     """
     Stage 3: assemble the retrieval context for generation.
+
+    Each chunk is formatted with a source marker such as [1], [2], etc., so the
+    model can reference it in its final answer. The assembled context is trimmed to
+    stay within a token budget while leaving room for instructions, the question,
+    and the answer itself.
     """
     assembled = []
+    formatted_context = []
+    used_tokens = 0
+    max_context_for_chunks = max_context_tokens - reserved_tokens
 
     for rank, item in enumerate(retrieved, start=1):
-        assembled.append(
-            {
-                "rank": rank,
-                "score": round(item["score"], 4),
-                "section": item["metadata"]["section"],
-                "source": item["metadata"]["source"],
-                "chunk_index": item["metadata"]["chunk_index"],
-                "text": item["text"],
-            }
+        marker = f"[{rank}]"
+        chunk_payload = {
+            "rank": rank,
+            "marker": marker,
+            "score": round(item["score"], 4),
+            "section": item["metadata"]["section"],
+            "source": item["metadata"]["source"],
+            "chunk_index": item["metadata"]["chunk_index"],
+            "text": item["text"],
+        }
+
+        block_text = (
+            f"{marker} {chunk_payload['section']} ({chunk_payload['source']})\n"
+            f"{chunk_payload['text']}"
         )
+        block_tokens = estimate_token_count(block_text)
 
-    return assembled
+        if used_tokens + block_tokens > max_context_for_chunks:
+            break
+
+        used_tokens += block_tokens
+        chunk_payload["block_text"] = block_text
+        formatted_context.append(block_text)
+        assembled.append(chunk_payload)
+
+    context_text = "\n\n".join(formatted_context)
+
+    return {
+        "chunks": assembled,
+        "context_text": context_text,
+        "context_token_count": used_tokens,
+        "remaining_token_budget": max_context_for_chunks - used_tokens,
+        "max_context_tokens": max_context_tokens,
+        "reserved_tokens": reserved_tokens,
+    }
 
 
-def generate_answer(query: str, assembled_context: list[dict[str, Any]]) -> dict[str, Any]:
+def generate_answer(query: str, assembled_context: dict[str, Any]) -> dict[str, Any]:
     """
     Stage 4: generate the final answer grounded in the retrieved context.
 
     This demo keeps generation deterministic and transparent. In a production system,
     this stage would call the chat model with the assembled context as the prompt.
     """
-    top_context = assembled_context[0]
+    top_context = assembled_context["chunks"][0]
+    prompt = render_answer_prompt(
+        context=assembled_context["context_text"],
+        question=query,
+    )
 
     answer_text = (
-        f"According to the {top_context['section']} policy section ({top_context['source']}), "
+        f"According to {top_context['marker']} ({top_context['source']}), "
         f"{top_context['text']}"
     )
 
     return {
         "query": query,
+        "prompt": prompt,
         "generated_answer": answer_text,
         "sources": [
             {
                 "rank": item["rank"],
+                "marker": item["marker"],
                 "section": item["section"],
                 "source": item["source"],
                 "chunk_index": item["chunk_index"],
                 "score": item["score"],
                 "text": item["text"],
             }
-            for item in assembled_context
+            for item in assembled_context["chunks"]
         ],
     }
 
 
-def build_payload(query: str, top_k: int = TOP_K) -> dict[str, Any]:
+def build_payload(
+    query: str,
+    top_k: int = TOP_K,
+    max_context_tokens: int = MODEL_CONTEXT_TOKEN_BUDGET,
+    reserved_tokens: int = RESERVED_PROMPT_TOKENS,
+) -> dict[str, Any]:
     query_vector = embed_query(query)
     retrieved = retrieve_candidates(query_vector, top_k=top_k)
-    assembled = assemble_context(retrieved)
+    assembled = assemble_context(
+        retrieved,
+        max_context_tokens=max_context_tokens,
+        reserved_tokens=reserved_tokens,
+    )
     generated = generate_answer(query, assembled)
 
     return {
@@ -212,20 +275,34 @@ def build_text_report(payload: dict[str, Any]) -> str:
         "Flow overview:",
         "1. embed_query - create a query vector from the incoming user question.",
         "2. retrieve_candidates - score corpus chunks against that vector.",
-        "3. assemble_context - package the top-ranked chunks with metadata for generation.",
-        "4. generate_answer - return an answer grounded in the chosen sources.",
+        "3. assemble_context - package the top-ranked chunks with metadata, source markers, and a token budget.",
+        "4. generate_answer - return an answer grounded in the chosen sources via a prompt with explicit grounding instructions.",
         "",
         f"Sample query: {payload['query']}",
         f"Top-k used: {payload['top_k']}",
         f"Query vector: {payload['query_vector']}",
+        f"Context token budget: {payload['assembled_context']['max_context_tokens']}",
+        f"Reserved prompt tokens: {payload['assembled_context']['reserved_tokens']}",
+        f"Context tokens used: {payload['assembled_context']['context_token_count']}",
+        f"Remaining token budget: {payload['assembled_context']['remaining_token_budget']}",
         "",
-        "RETRIEVED SOURCES",
+        "PROMPT CONTEXT INJECTED INTO MODEL",
         "-" * 70,
     ]
 
-    for item in payload["assembled_context"]:
+    lines.append(payload["generated_answer"]["prompt"])
+
+    lines.extend(
+        [
+            "",
+            "RETRIEVED SOURCES",
+            "-" * 70,
+        ]
+    )
+
+    for item in payload["assembled_context"]["chunks"]:
         lines.append(
-            f"Rank {item['rank']}: section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
+            f"Rank {item['rank']}: marker={item['marker']} | section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
         )
 
     lines.extend(
@@ -242,7 +319,7 @@ def build_text_report(payload: dict[str, Any]) -> str:
 
     for item in payload["generated_answer"]["sources"]:
         lines.append(
-            f"Rank {item['rank']}: section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
+            f"Rank {item['rank']}: marker={item['marker']} | section={item['section']} | source={item['source']} | chunk_index={item['chunk_index']} | score={item['score']:.4f} | text={item['text']}"
         )
 
     return "\n".join(lines) + "\n"
