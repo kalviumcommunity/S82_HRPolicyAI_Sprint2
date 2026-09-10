@@ -46,6 +46,14 @@ misses the expected chunk or scores poorly, and writes the full results to
 `outputs/retrieval_evaluation_results.json` and
 `outputs/retrieval_evaluation_results.txt`.
 
+To run an end-to-end query-to-answer RAG flow demo, use `python src/rag_pipeline_demo.py`.
+This script explicitly separates the four stages of the flow into testable
+functions: `embed_query`, `retrieve_candidates`, `assemble_context`, and
+`generate_answer`. The pipeline writes both the structured payload and a plain
+text report to `outputs/rag_pipeline_results.json` and
+`outputs/rag_pipeline_results.txt`, including the generated answer and the
+retrieved sources.
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and
