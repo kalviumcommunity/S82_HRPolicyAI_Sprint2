@@ -6,7 +6,7 @@
     {
       "rank": 1,
       "vector_score": 0.9966,
-      "text": "Parking permits must be renewed annually before the end of the month.",
+      "text": "Parking permits must be renewed annually before the end of the month..",
       "section": "Parking",
       "source": "sample_parking_policy.txt",
       "chunk_index": 4

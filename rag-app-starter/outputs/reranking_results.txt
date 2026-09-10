@@ -38,4 +38,4 @@ After rerank top result text: Leave requests should be submitted to a manager at
 Why this matters:
 - The initial vector ranking was driven by semantic similarity only.
 - The re-ranker adds an explicit keyword/phrase signal so direct answer chunks rise in the ranking.
-- The final top-k chunk set is therefore more directly relevant to the query than the raw vector order.
+- The final top-k chunk set is therefore more directly relevant to the query than the raw vector order..

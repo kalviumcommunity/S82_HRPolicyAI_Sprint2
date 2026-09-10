@@ -32,7 +32,7 @@ CORPUS = [
         "embedding": [0.70, 0.95, 0.00, 0.00],
     },
     {
-        "text": "All employees receive 10 days of paid sick leave annually on January 1st.",
+        "text": "All employees receive 10 days of paid sick leave annually on January 1st. ",
         "metadata": {
             "source": "sample_leave_policy.txt",
             "section": "Sick leave",
