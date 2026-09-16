@@ -1,8 +1,12 @@
-# HRPolicyAI — RAG Assistant Environment Starter
+# HRPolicyAI — RAG-Powered HR Policy Assistant
 
 HRPolicyAI is an internal Retrieval-Augmented Generation (RAG) assistant designed to securely and accurately answer employee questions using official HR documents (e.g., employee handbooks, leave policies, benefits policies, regional HR documents).
 
-This repository contains the starter environment workspace, configuration files, and a basic runnable script to ensure a secure, isolated, and reproducible development setup before building out the pipeline.
+| | |
+|---|---|
+| **Live Demo** | [hr-policy-ai-sprint2.vercel.app/chat](https://hr-policy-ai-sprint2.vercel.app/chat) |
+| **Mock UX / Figma** | [View Wireframe on Figma](https://www.figma.com/design/VdCTNg7B48kH71C1iJx0bZ/Untitled?node-id=17-449&t=ueNrg2jIbUFNSkGB-1) |
+| **PRD** | [PRD.md](./PRD.md) |
 
 ## Problem Statement
 
@@ -154,12 +158,30 @@ Render free instances spin down after 15 minutes of inactivity. HRPolicyAI inclu
 
 ## Architecture & Features (Sprint 2)
 
-- **Strict Role-Based Separation**: Complete separation between employee policy exploration and HR administrator management. Admin routes and controls are strictly hidden and gated server-side via `require_admin` (HTTP 403).
-- **Persistent Document Library**: Uploaded policies are stored in `data/uploads/` and tracked in `data/documents_store.json` with file streaming via `/documents/{id}/file`.
-- **In-App Document Viewer**: Fullscreen document modal with zoom controls (75% / 100% / 125%), page pagination (`« Prev | Page X | Next »`), and inline PDF previews.
-- **Word-by-Word Chat Streaming**: Server-Sent Events (SSE) via `/chat/stream` with real-time UI token streaming and dynamic typing indicator.
-- **Verifiable Source Citations**: Clickable source citations showing section, page number, version, region, and policy excerpts in plain English.
-- **Performance Optimized**: Code splitting with vendor chunks (`react-vendor`, `icons`), `React.lazy()` page suspense, and memoized search filters.
+### Data Source
+HR policy PDFs (employee handbooks, leave policies, benefits guides, regional HR documents) uploaded via the Admin panel and stored in `data/uploads/`.
+
+### Embedding Model & Vector DB
+| Component | Detail |
+|---|---|
+| Embedding Model | `text-embedding-3-small` (OpenAI) |
+| Vector Database | **ChromaDB** (persistent local store) |
+| Chunking | Recursive character splitter — 512 tokens, 64-token overlap |
+
+### How Retrieval Works
+1. Uploaded PDFs are parsed and chunked on ingestion.
+2. Each chunk is embedded via `text-embedding-3-small` and stored in ChromaDB.
+3. At query time the user's question is embedded and a cosine-similarity search returns the top-*k* chunks.
+4. Retrieved chunks are injected as context into the system prompt sent to the LLM (`gpt-4o`).
+5. The LLM returns a grounded answer; citations (section, page, document) are surfaced in the UI.
+
+### Key Features
+- **Strict Role-Based Separation**: Employee vs. HR-admin views; admin routes gated server-side via `require_admin` (HTTP 403).
+- **Persistent Document Library**: Policies tracked in `data/documents_store.json`; served via `/documents/{id}/file`.
+- **In-App Document Viewer**: Fullscreen modal with zoom (75 / 100 / 125 %) and page pagination.
+- **Word-by-Word Chat Streaming**: SSE via `/chat/stream` with real-time token display.
+- **Verifiable Source Citations**: Clickable citations showing section, page, version, and region.
+- **Performance Optimized**: Vendor code-splitting, `React.lazy()` suspense, memoized search filters.
 
 ---
 
