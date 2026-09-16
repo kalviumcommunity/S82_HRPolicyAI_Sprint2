@@ -20,3 +20,23 @@ def render_answer_prompt(context, question):
         context=context,
         question=question
     )
+
+
+CITED_ANSWER_TEMPLATE = """
+Answer using only the context below. Cite every factual claim using source markers like [1] or [2].
+Only use source markers that appear in the context.
+If the context does not support an answer, say you do not have enough information and do not invent citations.
+
+Context:
+{context}
+
+Question:
+{question}
+"""
+
+
+def render_cited_answer_prompt(context, question):
+    return CITED_ANSWER_TEMPLATE.format(
+        context=context,
+        question=question
+    )

@@ -53,6 +53,9 @@ outputs/*
 !outputs/retrieval_evaluation_results.txt
 !outputs/rag_pipeline_results.json
 !outputs/rag_pipeline_results.txt
+!outputs/citation_results.json
+!outputs/citation_sample_answers.txt
+!outputs/CITATION_VERIFICATION_REPORT.md
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/
