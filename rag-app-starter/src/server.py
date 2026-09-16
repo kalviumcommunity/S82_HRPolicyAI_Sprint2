@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
 from pydantic import BaseModel, Field
@@ -388,7 +388,94 @@ def require_admin(request: Request) -> dict:
     return user
 
 
-MIN_TOP_SCORE = 0.72
+UPLOAD_DIR = PROJECT_ROOT / "data" / "uploads"
+SUPPORTED_EXTENSIONS = {".txt", ".md", ".pdf"}
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
+
+def validate_upload(file: UploadFile):
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(status_code=415, detail=f"Unsupported file type '{suffix}'. Accepted: {SUPPORTED_EXTENSIONS}")
+    return suffix
+
+def load_text(path: Path) -> str:
+    """Extract plain text from txt/md/pdf."""
+    if path.suffix.lower() == ".pdf":
+        try:
+            import pypdf
+            reader = pypdf.PdfReader(str(path))
+            return "\n".join(page.extract_text() or "" for page in reader.pages)
+        except ImportError:
+            return path.read_bytes().decode("utf-8", errors="ignore")
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+def clean(text: str) -> str:
+    import re
+    text = re.sub(r'[ \t]+', ' ', text)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+def token_chunks(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    words = text.split()
+    chunks, start = [], 0
+    while start < len(words):
+        end = min(start + chunk_size, len(words))
+        chunks.append(" ".join(words[start:end]))
+        start += chunk_size - overlap
+    return chunks
+
+def tag_chunks(source: str, chunks: list[str]) -> list[dict]:
+    return [
+        {"id": f"{Path(source).stem}_chunk_{i}", "text": c, "metadata": {"source": Path(source).name, "chunk_index": i}}
+        for i, c in enumerate(chunks)
+    ]
+
+def process_uploaded_document(path: Path) -> dict:
+    """Run full RAG pipeline: load → clean → chunk → embed → index."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    
+    raw_text = load_text(path)
+    cleaned = clean(raw_text)
+    chunks = token_chunks(cleaned)
+    tagged = tag_chunks(source=str(path), chunks=chunks)
+    indexed = 0
+    
+    if api_key and tagged:
+        try:
+            from openai import OpenAI
+            import chromadb
+            
+            base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
+            client = OpenAI(api_key=api_key, base_url=base_url)
+            db_path = Path(os.getenv("VECTOR_DB_URL") or str(PROJECT_ROOT / ".chroma"))
+            collection_name = os.getenv("COLLECTION_NAME", "hr_policy_chunks")
+            chroma_client = chromadb.PersistentClient(path=str(db_path))
+            try:
+                collection = chroma_client.get_collection(collection_name)
+            except Exception:
+                collection = chroma_client.create_collection(collection_name)
+            
+            # Embed and index in batches of 50
+            BATCH = 50
+            for i in range(0, len(tagged), BATCH):
+                batch = tagged[i:i+BATCH]
+                texts = [c["text"] for c in batch]
+                resp = client.embeddings.create(model=embedding_model, input=texts)
+                embeddings = [r.embedding for r in resp.data]
+                collection.upsert(
+                    ids=[c["id"] for c in batch],
+                    documents=texts,
+                    embeddings=embeddings,
+                    metadatas=[c["metadata"] for c in batch]
+                )
+                indexed += len(batch)
+        except Exception as e:
+            logger.warning("Indexing into Chroma failed: %s", e)
+    
+    return {"document": str(path), "chunks": len(tagged), "indexed": indexed}
+
+
 MIN_SUPPORTING_CHUNKS = 1
 
 def retrieval_is_strong(chunks: list) -> bool:
@@ -793,6 +880,7 @@ def get_documents(
 @app.post("/documents")
 async def upload_document(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: Optional[UploadFile] = File(None),
     name: Optional[str] = Form(None),
     region: Optional[str] = Form("India"),
@@ -805,18 +893,25 @@ async def upload_document(
     filename = file.filename if file else f"Policy_{doc_id}.pdf"
     doc_name = name or (filename.replace(".pdf", "").replace("_", " ") if file else "New HR Policy")
 
-    # Save uploaded file bytes to disk
+    # Validate and store uploaded file
+    save_path = None
     file_url = None
     if file:
-        uploads_dir = PROJECT_ROOT / "data" / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
-        safe_filename = filename.replace("/", "_").replace("\\", "_")
-        save_path = uploads_dir / f"{doc_id}_{safe_filename}"
+        validate_upload(file)                   # 415 if unsupported type
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        safe_filename = Path(filename).name.replace("/", "_").replace("\\", "_")
+        save_path = UPLOAD_DIR / f"{doc_id}_{safe_filename}"
         content = await file.read()
+        if len(content) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        if len(content) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
         save_path.write_bytes(content)
         file_size_mb = round(len(content) / (1024 * 1024), 1)
         file_size_str = f"{file_size_mb} MB"
         file_url = f"/documents/{doc_id}/file"
+        # Index in the background so the response is immediate
+        background_tasks.add_task(process_uploaded_document, save_path)
     else:
         file_size_str = "N/A"
 
