@@ -11,7 +11,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -351,6 +351,19 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: Optional[str] = None
 
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+class Source(BaseModel):
+    source: str
+    chunk_id: Optional[str] = None
+    score: Optional[float] = None
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: List[Source]
+    status: str
+
 
 # --- Helper Methods ---
 def get_current_user(request: Request):
@@ -444,9 +457,11 @@ def generate_rag_response(question: str, history: list = None) -> tuple[str, lis
             logger.info("Original question: %s | Standalone query: %s", question, standalone_query)
             
             # Setup Chroma
-            db_path = PROJECT_ROOT / ".chroma"
+            db_path_env = os.getenv("VECTOR_DB_URL")
+            db_path = Path(db_path_env) if db_path_env else PROJECT_ROOT / ".chroma"
             chroma_client = chromadb.PersistentClient(path=str(db_path))
-            collection = get_collection(chroma_client, "hr_policy_chunks")
+            collection_name = os.getenv("COLLECTION_NAME", "hr_policy_chunks")
+            collection = get_collection(chroma_client, collection_name)
             
             # Retrieve chunks
             query_embedding = embed_query(standalone_query, client, embedding_model)
@@ -710,6 +725,28 @@ async def chat_stream(payload: ChatRequest, request: Request):
         }
     )
 
+
+@app.post("/query", response_model=QueryResponse)
+def query_rag(request: QueryRequest):
+    """Exposed API endpoint for RAG query processing."""
+    try:
+        answer, sources_list = generate_rag_response(request.question)
+        sources = [
+            Source(
+                source=s.get("document", "Unknown"),
+                chunk_id=s.get("document_id"),
+                score=None
+            ) for s in sources_list
+        ]
+        status = "answered"
+        if answer == "I don't have enough reliable context to answer that." or "fallback" in answer.lower():
+            status = "unanswered"
+        return QueryResponse(answer=answer, sources=sources, status=status)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as e:
+        logger.error(f"RAG service failed: {e}")
+        raise HTTPException(status_code=500, detail="RAG service failed")
 
 @app.get("/conversations")
 def get_conversations():
