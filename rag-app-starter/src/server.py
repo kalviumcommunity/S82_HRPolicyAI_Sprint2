@@ -8,10 +8,10 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form
+from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -351,6 +351,19 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: Optional[str] = None
 
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+class Source(BaseModel):
+    source: str
+    chunk_id: Optional[str] = None
+    score: Optional[float] = None
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: List[Source]
+    status: str
+
 
 # --- Helper Methods ---
 def get_current_user(request: Request):
@@ -375,45 +388,199 @@ def require_admin(request: Request) -> dict:
     return user
 
 
-def generate_rag_response(question: str) -> tuple[str, list]:
+UPLOAD_DIR = PROJECT_ROOT / "data" / "uploads"
+SUPPORTED_EXTENSIONS = {".txt", ".md", ".pdf"}
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
+
+def validate_upload(file: UploadFile):
+    suffix = Path(file.filename).suffix.lower()
+    if suffix not in SUPPORTED_EXTENSIONS:
+        raise HTTPException(status_code=415, detail=f"Unsupported file type '{suffix}'. Accepted: {SUPPORTED_EXTENSIONS}")
+    return suffix
+
+def load_text(path: Path) -> str:
+    """Extract plain text from txt/md/pdf."""
+    if path.suffix.lower() == ".pdf":
+        try:
+            import pypdf
+            reader = pypdf.PdfReader(str(path))
+            return "\n".join(page.extract_text() or "" for page in reader.pages)
+        except ImportError:
+            return path.read_bytes().decode("utf-8", errors="ignore")
+    return path.read_text(encoding="utf-8", errors="ignore")
+
+def clean(text: str) -> str:
+    import re
+    text = re.sub(r'[ \t]+', ' ', text)
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    return text.strip()
+
+def token_chunks(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str]:
+    words = text.split()
+    chunks, start = [], 0
+    while start < len(words):
+        end = min(start + chunk_size, len(words))
+        chunks.append(" ".join(words[start:end]))
+        start += chunk_size - overlap
+    return chunks
+
+def tag_chunks(source: str, chunks: list[str]) -> list[dict]:
+    return [
+        {"id": f"{Path(source).stem}_chunk_{i}", "text": c, "metadata": {"source": Path(source).name, "chunk_index": i}}
+        for i, c in enumerate(chunks)
+    ]
+
+def process_uploaded_document(path: Path) -> dict:
+    """Run full RAG pipeline: load → clean → chunk → embed → index."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
+    
+    raw_text = load_text(path)
+    cleaned = clean(raw_text)
+    chunks = token_chunks(cleaned)
+    tagged = tag_chunks(source=str(path), chunks=chunks)
+    indexed = 0
+    
+    if api_key and tagged:
+        try:
+            from openai import OpenAI
+            import chromadb
+            
+            base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
+            client = OpenAI(api_key=api_key, base_url=base_url)
+            db_path = Path(os.getenv("VECTOR_DB_URL") or str(PROJECT_ROOT / ".chroma"))
+            collection_name = os.getenv("COLLECTION_NAME", "hr_policy_chunks")
+            chroma_client = chromadb.PersistentClient(path=str(db_path))
+            try:
+                collection = chroma_client.get_collection(collection_name)
+            except Exception:
+                collection = chroma_client.create_collection(collection_name)
+            
+            # Embed and index in batches of 50
+            BATCH = 50
+            for i in range(0, len(tagged), BATCH):
+                batch = tagged[i:i+BATCH]
+                texts = [c["text"] for c in batch]
+                resp = client.embeddings.create(model=embedding_model, input=texts)
+                embeddings = [r.embedding for r in resp.data]
+                collection.upsert(
+                    ids=[c["id"] for c in batch],
+                    documents=texts,
+                    embeddings=embeddings,
+                    metadatas=[c["metadata"] for c in batch]
+                )
+                indexed += len(batch)
+        except Exception as e:
+            logger.warning("Indexing into Chroma failed: %s", e)
+    
+    return {"document": str(path), "chunks": len(tagged), "indexed": indexed}
+
+
+MIN_SUPPORTING_CHUNKS = 1
+
+def retrieval_is_strong(chunks: list) -> bool:
+    if not chunks:
+        return False
+    strong_chunks = [chunk for chunk in chunks if chunk["score"] >= MIN_TOP_SCORE]
+    return len(strong_chunks) >= MIN_SUPPORTING_CHUNKS
+
+def build_citation_map(chunks: list) -> dict:
+    citation_map = {}
+    for index, chunk in enumerate(chunks, start=1):
+        citation_map[f"[{index}]"] = {
+            "document_id": chunk["metadata"].get("source", "Unknown"),
+            "document": chunk["metadata"].get("source", "Unknown Document"),
+            "section": chunk["metadata"].get("section", "General"),
+            "page": chunk["metadata"].get("page", 1),
+            "region": chunk["metadata"].get("region", "Global"),
+            "version": chunk["metadata"].get("version", "Latest"),
+            "excerpt": chunk["text"][:200] + "..." if len(chunk["text"]) > 200 else chunk["text"]
+        }
+    return citation_map
+
+def rewrite_followup(client, model, history, question):
+    if not history:
+        return question
+    
+    # Keep only the last 3 turns (6 messages) to prevent context overflow and token bloat
+    recent_history = history[-6:]
+    history_text = "\n".join([f"{msg['sender'].capitalize()}: {msg['text']}" for msg in recent_history])
+    
+    prompt = f"""Rewrite the user's latest question as a standalone search query. 
+Use the conversation history only to resolve references (like "it", "they", "this policy"). 
+Do not answer the question. 
+History:
+{history_text}
+Latest question: {question}
+Standalone query:"""
+    
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0
+    )
+    return response.choices[0].message.content.strip()
+
+
+def generate_rag_response(question: str, history: list = None) -> tuple[str, list]:
     """Execute live RAG if OpenAI and vector store configured, otherwise grounded knowledge base."""
     api_key = os.getenv("OPENAI_API_KEY")
     chat_model = os.getenv("CHAT_MODEL", "gpt-3.5-turbo")
+    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     
     # Check if we can perform Chroma/OpenAI RAG
     if api_key:
         try:
             from openai import OpenAI
+            import chromadb
+            from retrieval import embed_query, get_collection, retrieve_chunks
+            from prompts.answer import render_answer_prompt
+            
             base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
             client = OpenAI(api_key=api_key, base_url=base_url)
             
-            # Use prompts template
-            from prompts.answer import render_answer_prompt
+            # Rewrite follow-up question if history is provided
+            standalone_query = rewrite_followup(client, chat_model, history, question)
+            logger.info("Original question: %s | Standalone query: %s", question, standalone_query)
+            
+            # Setup Chroma
+            db_path_env = os.getenv("VECTOR_DB_URL")
+            db_path = Path(db_path_env) if db_path_env else PROJECT_ROOT / ".chroma"
+            chroma_client = chromadb.PersistentClient(path=str(db_path))
+            collection_name = os.getenv("COLLECTION_NAME", "hr_policy_chunks")
+            collection = get_collection(chroma_client, collection_name)
+            
+            # Retrieve chunks
+            query_embedding = embed_query(standalone_query, client, embedding_model)
+            chunks = retrieve_chunks(collection, query_embedding, k=3)
+            
+            # Guardrails check
+            if not retrieval_is_strong(chunks):
+                return "I don't have enough reliable context to answer that.", []
+            
+            # Build Citation Map and Context
+            citation_map = build_citation_map(chunks)
+            context_blocks = []
+            for i, chunk in enumerate(chunks, start=1):
+                marker = f"[{i}]"
+                context_blocks.append(f"{marker} {chunk['metadata'].get('section', 'General')} ({chunk['metadata'].get('source', 'Unknown')})\n{chunk['text']}")
+            
+            context_text = "\n\n".join(context_blocks)
             prompt = render_answer_prompt(
-                context="All official company policies from Global Handbook and India Leave Policy 2026.",
+                context=context_text,
                 question=question
             )
             
             response = client.chat.completions.create(
                 model=chat_model,
                 messages=[
-                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations."},
+                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations. Always refer to the exact source markers provided in the context (e.g. [1], [2])."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.2
             )
             answer = response.choices[0].message.content
-            sources = [
-                {
-                    "document_id": "doc_gl_handbook",
-                    "document": "Global Employee Handbook",
-                    "section": "General Policies",
-                    "page": 1,
-                    "region": "Global",
-                    "version": "2026.2",
-                    "excerpt": "Policies apply company-wide according to regional jurisdictions."
-                }
-            ]
+            sources = list(citation_map.values())
             return answer, sources
         except Exception as e:
             logger.warning("LLM API call failed, falling back to grounded knowledge base: %s", e)
@@ -533,7 +700,10 @@ def chat(payload: ChatRequest):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    answer, sources = generate_rag_response(question)
+    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
+    history = conv["messages"] if conv else []
+
+    answer, sources = generate_rag_response(question, history)
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -554,7 +724,6 @@ def chat(payload: ChatRequest):
     }
 
     # Find or create conversation
-    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
     if not conv:
         title = question[:40] + "..." if len(question) > 40 else question
         conv = {
@@ -591,8 +760,11 @@ async def chat_stream(payload: ChatRequest, request: Request):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
+    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
+    history = conv["messages"] if conv else []
+
     # Get the full answer synchronously first (RAG pipeline)
-    answer, sources = generate_rag_response(question)
+    answer, sources = generate_rag_response(question, history)
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -602,7 +774,6 @@ async def chat_stream(payload: ChatRequest, request: Request):
     ai_msg = {"id": ai_msg_id, "conversation_id": conv_id, "sender": "assistant",
               "text": answer, "timestamp": datetime.utcnow().isoformat() + "Z", "sources": sources}
 
-    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
     if not conv:
         title = question[:40] + "..." if len(question) > 40 else question
         conv = {"id": conv_id, "title": title, "region": "India", "date": "Today",
@@ -641,6 +812,28 @@ async def chat_stream(payload: ChatRequest, request: Request):
         }
     )
 
+
+@app.post("/query", response_model=QueryResponse)
+def query_rag(request: QueryRequest):
+    """Exposed API endpoint for RAG query processing."""
+    try:
+        answer, sources_list = generate_rag_response(request.question)
+        sources = [
+            Source(
+                source=s.get("document", "Unknown"),
+                chunk_id=s.get("document_id"),
+                score=None
+            ) for s in sources_list
+        ]
+        status = "answered"
+        if answer == "I don't have enough reliable context to answer that." or "fallback" in answer.lower():
+            status = "unanswered"
+        return QueryResponse(answer=answer, sources=sources, status=status)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as e:
+        logger.error(f"RAG service failed: {e}")
+        raise HTTPException(status_code=500, detail="RAG service failed")
 
 @app.get("/conversations")
 def get_conversations():
@@ -687,6 +880,7 @@ def get_documents(
 @app.post("/documents")
 async def upload_document(
     request: Request,
+    background_tasks: BackgroundTasks,
     file: Optional[UploadFile] = File(None),
     name: Optional[str] = Form(None),
     region: Optional[str] = Form("India"),
@@ -699,18 +893,25 @@ async def upload_document(
     filename = file.filename if file else f"Policy_{doc_id}.pdf"
     doc_name = name or (filename.replace(".pdf", "").replace("_", " ") if file else "New HR Policy")
 
-    # Save uploaded file bytes to disk
+    # Validate and store uploaded file
+    save_path = None
     file_url = None
     if file:
-        uploads_dir = PROJECT_ROOT / "data" / "uploads"
-        uploads_dir.mkdir(parents=True, exist_ok=True)
-        safe_filename = filename.replace("/", "_").replace("\\", "_")
-        save_path = uploads_dir / f"{doc_id}_{safe_filename}"
+        validate_upload(file)                   # 415 if unsupported type
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        safe_filename = Path(filename).name.replace("/", "_").replace("\\", "_")
+        save_path = UPLOAD_DIR / f"{doc_id}_{safe_filename}"
         content = await file.read()
+        if len(content) == 0:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
+        if len(content) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail="File exceeds 20 MB limit.")
         save_path.write_bytes(content)
         file_size_mb = round(len(content) / (1024 * 1024), 1)
         file_size_str = f"{file_size_mb} MB"
         file_url = f"/documents/{doc_id}/file"
+        # Index in the background so the response is immediate
+        background_tasks.add_task(process_uploaded_document, save_path)
     else:
         file_size_str = "N/A"
 

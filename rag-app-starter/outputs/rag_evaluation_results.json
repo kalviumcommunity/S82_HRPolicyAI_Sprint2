@@ -1,0 +1,120 @@
+{
+  "details": [
+    {
+      "question": "How many weeks of maternity leave are provided in India?",
+      "answer": "Under the India Maternity Benefit guidelines, female employees are entitled to 26 weeks (182 calendar days) of fully paid maternity leave for up to two surviving children. Applications should be submitted at least 8 weeks prior to the expected delivery date.",
+      "correctness": 1,
+      "grounding": 0,
+      "citation_accuracy": 1,
+      "citations": [
+        {
+          "document_id": "doc_in_leave",
+          "document": "India Leave Policy 2026",
+          "section": "Section 4.1: Maternity Leave",
+          "page": 12,
+          "region": "India",
+          "version": "2026.1",
+          "excerpt": "Female employees who have worked for at least 80 days in the 12 months preceding the date of expected delivery are entitled to 26 weeks of paid leave."
+        }
+      ]
+    },
+    {
+      "question": "What happens if I need medical leave for 4 days?",
+      "answer": "Employees receive 12 days of paid medical/sick leave per calendar year. Medical certificates are mandatory for consecutive absences exceeding 3 working days.",
+      "correctness": 0,
+      "grounding": 0,
+      "citation_accuracy": 1,
+      "citations": [
+        {
+          "document_id": "doc_in_leave",
+          "document": "India Leave Policy 2026",
+          "section": "Section 2.3: Medical Leave",
+          "page": 8,
+          "region": "India",
+          "version": "2026.1",
+          "excerpt": "Medical leaves accrue on a quarterly basis. A registered medical practitioner certificate is required for leaves of 3+ consecutive days."
+        }
+      ]
+    },
+    {
+      "question": "What is the policy for space travel?",
+      "answer": "Based on our HR Policy Repository regarding \"What is the policy for space travel?\", policies are administered according to regional jurisdiction and active employment status. Please consult the relevant handbook or reach out to your designated People Partner for tailored assistance.",
+      "correctness": 0,
+      "grounding": 0,
+      "citation_accuracy": 0,
+      "citations": [
+        {
+          "document_id": "doc_gl_handbook",
+          "document": "Global Employee Handbook",
+          "section": "Chapter 1: General Employment Principles",
+          "page": 5,
+          "region": "Global",
+          "version": "2026.2",
+          "excerpt": "Company policies apply to all employees worldwide unless superseded by regional addenda."
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "questions": 3,
+    "avg_correctness": 0.3333333333333333,
+    "avg_grounding": 0.0,
+    "avg_citation_accuracy": 0.6666666666666666,
+    "failures": [
+      {
+        "question": "How many weeks of maternity leave are provided in India?",
+        "answer": "Under the India Maternity Benefit guidelines, female employees are entitled to 26 weeks (182 calendar days) of fully paid maternity leave for up to two surviving children. Applications should be submitted at least 8 weeks prior to the expected delivery date.",
+        "correctness": 1,
+        "grounding": 0,
+        "citation_accuracy": 1,
+        "citations": [
+          {
+            "document_id": "doc_in_leave",
+            "document": "India Leave Policy 2026",
+            "section": "Section 4.1: Maternity Leave",
+            "page": 12,
+            "region": "India",
+            "version": "2026.1",
+            "excerpt": "Female employees who have worked for at least 80 days in the 12 months preceding the date of expected delivery are entitled to 26 weeks of paid leave."
+          }
+        ]
+      },
+      {
+        "question": "What happens if I need medical leave for 4 days?",
+        "answer": "Employees receive 12 days of paid medical/sick leave per calendar year. Medical certificates are mandatory for consecutive absences exceeding 3 working days.",
+        "correctness": 0,
+        "grounding": 0,
+        "citation_accuracy": 1,
+        "citations": [
+          {
+            "document_id": "doc_in_leave",
+            "document": "India Leave Policy 2026",
+            "section": "Section 2.3: Medical Leave",
+            "page": 8,
+            "region": "India",
+            "version": "2026.1",
+            "excerpt": "Medical leaves accrue on a quarterly basis. A registered medical practitioner certificate is required for leaves of 3+ consecutive days."
+          }
+        ]
+      },
+      {
+        "question": "What is the policy for space travel?",
+        "answer": "Based on our HR Policy Repository regarding \"What is the policy for space travel?\", policies are administered according to regional jurisdiction and active employment status. Please consult the relevant handbook or reach out to your designated People Partner for tailored assistance.",
+        "correctness": 0,
+        "grounding": 0,
+        "citation_accuracy": 0,
+        "citations": [
+          {
+            "document_id": "doc_gl_handbook",
+            "document": "Global Employee Handbook",
+            "section": "Chapter 1: General Employment Principles",
+            "page": 5,
+            "region": "Global",
+            "version": "2026.2",
+            "excerpt": "Company policies apply to all employees worldwide unless superseded by regional addenda."
+          }
+        ]
+      }
+    ]
+  }
+}
