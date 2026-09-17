@@ -232,6 +232,197 @@ export const api = {
       };
     },
 
+    async sendMessageStream({ conversation_id, question, onSources, onChunk, onDone, onError, signal }) {
+      if (!USE_MOCK) {
+        try {
+          const token = localStorage.getItem('hr_token');
+          const headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          };
+          if (token) headers['Authorization'] = `Bearer ${token}`;
+
+          const response = await fetch(`${API_BASE_URL}/chat/stream`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ conversation_id, question }),
+            signal,
+          });
+
+          if (!response.ok) {
+            let errDetail = `Server returned HTTP ${response.status}`;
+            try {
+              const errJson = await response.json();
+              errDetail = errJson.detail || errJson.message || errDetail;
+            } catch {
+              // fallback
+            }
+            throw new Error(errDetail);
+          }
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+          let accumulatedText = '';
+          let finalData = null;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n\n');
+            buffer = lines.pop() || '';
+
+            for (const block of lines) {
+              if (!block.trim()) continue;
+              let eventType = 'message';
+              let dataStr = '';
+
+              const eventLines = block.split('\n');
+              for (const line of eventLines) {
+                if (line.startsWith('event: ')) {
+                  eventType = line.substring(7).trim();
+                } else if (line.startsWith('data: ')) {
+                  dataStr = line.substring(6).trim();
+                }
+              }
+
+              if (dataStr) {
+                try {
+                  const parsed = JSON.parse(dataStr);
+                  if (eventType === 'sources') {
+                    if (onSources) onSources(parsed.sources || []);
+                  } else if (eventType === 'token') {
+                    accumulatedText += parsed.token || '';
+                    if (onChunk) onChunk(parsed.token || '', accumulatedText);
+                  } else if (eventType === 'done') {
+                    finalData = parsed;
+                    if (onDone) onDone(parsed);
+                  } else if (eventType === 'error') {
+                    throw new Error(parsed.error || 'Streaming error');
+                  }
+                } catch (e) {
+                  if (eventType === 'error') throw e;
+                }
+              }
+            }
+          }
+
+          return finalData;
+        } catch (err) {
+          if (signal?.aborted) {
+            return null;
+          }
+          if (onError) onError(err);
+          throw err;
+        }
+      }
+
+      // Mock Streaming Implementation
+      try {
+        await delay(250);
+        if (signal?.aborted) return null;
+
+        const qLower = (question || '').toLowerCase();
+        const matched = MOCK_QA_DATABASE.find((item) =>
+          item.keywords.some((kw) => qLower.includes(kw))
+        );
+
+        const generatedAnswer = matched
+          ? matched.answer
+          : `Based on your query regarding "${question}", our company policy documents indicate that policies are administered according to regional jurisdiction and active employment status [1]. Please refer to the specific HR guidelines for your region or contact your People Partner for exceptional cases.`;
+
+        const generatedSources = matched
+          ? matched.sources
+          : [
+              {
+                document_id: 'doc_gl_handbook',
+                chunk_id: 'chk_gl_handbook_001',
+                marker: '[1]',
+                citation_index: 1,
+                document: 'Global Employee Handbook',
+                section: 'Chapter 1: General Employment Principles',
+                page: 5,
+                region: 'Global',
+                version: '2026.2',
+                score: 0.90,
+                excerpt: 'Company policies apply to all employees worldwide unless superseded by regional addenda or statutory requirements.',
+              },
+            ];
+
+        // Emit sources immediately at start of stream
+        if (onSources) onSources(generatedSources);
+
+        // Stream word by word
+        const words = generatedAnswer.split(' ');
+        let accumulated = '';
+        const activeConvId = conversation_id || `conv_${Date.now()}`;
+        const aiMsgId = `msg_a_${Date.now()}`;
+
+        for (let i = 0; i < words.length; i++) {
+          if (signal?.aborted) return null;
+          const token = words[i] + (i < words.length - 1 ? ' ' : '');
+          accumulated += token;
+          if (onChunk) onChunk(token, accumulated);
+          await delay(32);
+        }
+
+        const finalResult = {
+          conversation_id: activeConvId,
+          message_id: aiMsgId,
+          answer: generatedAnswer,
+          sources: generatedSources,
+        };
+
+        // Save to mock storage
+        const userMsgId = `msg_u_${Date.now()}`;
+        const userMessage = {
+          id: userMsgId,
+          conversation_id: activeConvId,
+          sender: 'user',
+          text: question,
+          timestamp: new Date().toISOString(),
+        };
+        const aiMessage = {
+          id: aiMsgId,
+          conversation_id: activeConvId,
+          sender: 'assistant',
+          text: generatedAnswer,
+          timestamp: new Date().toISOString(),
+          sources: generatedSources,
+        };
+
+        let conv = mockLocalConversations.find((c) => c.id === activeConvId);
+        if (!conv) {
+          const title = question.length > 40 ? question.slice(0, 40) + '...' : question;
+          conv = {
+            id: activeConvId,
+            title,
+            region: 'India',
+            date: 'Today',
+            updatedAt: new Date().toISOString(),
+            messageCount: 2,
+            preview: generatedAnswer.slice(0, 80) + '...',
+            messages: [userMessage, aiMessage],
+          };
+          mockLocalConversations.unshift(conv);
+        } else {
+          conv.messages.push(userMessage, aiMessage);
+          conv.updatedAt = new Date().toISOString();
+          conv.messageCount = conv.messages.length;
+          conv.preview = generatedAnswer.slice(0, 80) + '...';
+        }
+
+        if (onDone) onDone(finalResult);
+        return finalResult;
+      } catch (err) {
+        if (signal?.aborted) return null;
+        if (onError) onError(err);
+        throw err;
+      }
+    },
+
     async getConversations() {
       if (!USE_MOCK) {
         return fetchClient('/conversations');

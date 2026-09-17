@@ -1,19 +1,25 @@
 // src/components/chat/SourceCard.jsx
 import React from 'react';
-import { BookOpen, ChevronRight, Hash, Sparkles } from 'lucide-react';
+import { BookOpen, ChevronRight, Hash, Sparkles, Bookmark } from 'lucide-react';
 
-export function SourceCard({ source, onSelect }) {
+export function SourceCard({ source, citationIndex, onSelect }) {
   if (!source) return null;
 
   const chunkId = source.chunk_id || (source.document_id ? `${source.document_id}_chk${source.page || '1'}` : null);
   const matchScore = source.score ? `${Math.round(source.score * 100)}% Match` : 'High Relevance';
+  const markerNum = citationIndex || source.citation_index || null;
 
   return (
     <div className="group flex flex-col justify-between p-3.5 bg-white hover:bg-blue-50/50 border border-slate-200 hover:border-blue-300 rounded-xl transition-all duration-200 shadow-xs hover:shadow-sm">
       <div>
-        {/* Top Header with Document Name & Score */}
+        {/* Top Header with Citation Index, Document Name & Score */}
         <div className="flex items-start justify-between gap-2 mb-1.5">
           <div className="flex items-center gap-1.5 min-w-0">
+            {markerNum && (
+              <span className="inline-flex items-center justify-center font-bold text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded shadow-2xs shrink-0">
+                [{markerNum}]
+              </span>
+            )}
             <BookOpen className="w-4 h-4 text-blue-600 shrink-0" />
             <h5 className="text-xs font-semibold text-slate-900 group-hover:text-blue-700 truncate">
               {source.document || 'Policy Reference'}

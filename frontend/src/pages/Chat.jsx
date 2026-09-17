@@ -30,16 +30,17 @@ export function Chat() {
   const [conversationTitle, setConversationTitle] = useState('New HR Policy Consultation');
   const [messages, setMessages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [loadingConv, setLoadingConv] = useState(false);
-  const [queryStatus, setQueryStatus] = useState(''); // e.g. "Searching HR policies...", "Synthesizing answer..."
+  const [queryStatus, setQueryStatus] = useState('');
   const [error, setError] = useState(null);
-
   const [lastQuestion, setLastQuestion] = useState('');
 
   // Active source for the SourceModal
   const [activeSource, setActiveSource] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   // Auto-scroll down when messages change or submitting
   const scrollToBottom = (behavior = 'smooth') => {
@@ -48,18 +49,16 @@ export function Chat() {
 
   useEffect(() => {
     scrollToBottom('smooth');
-  }, [messages, isSubmitting, queryStatus]);
+  }, [messages, isSubmitting, isStreaming, queryStatus]);
 
   // Load existing conversation if id in URL changes
   useEffect(() => {
-    // If active conversation already matches the URL parameter, avoid re-fetching
     if (convIdFromUrl && convIdFromUrl === conversationId) {
       return;
     }
 
     async function loadConversation() {
       if (!convIdFromUrl) {
-        // Reset to clean state or initial demo conversation
         setConversationId(null);
         setConversationTitle('New HR Policy Consultation');
         setMessages([]);
@@ -85,81 +84,150 @@ export function Chat() {
   }, [convIdFromUrl, conversationId]);
 
   const handleStartNewChat = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setSearchParams({});
     setConversationId(null);
     setConversationTitle('New HR Policy Consultation');
     setMessages([]);
     setError(null);
     setLastQuestion('');
+    setIsSubmitting(false);
+    setIsStreaming(false);
+  };
+
+  const handleStopGeneration = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsSubmitting(false);
+    setIsStreaming(false);
+    setQueryStatus('');
+    // Finalize any streaming messages
+    setMessages((prev) =>
+      prev.map((msg) => (msg.isStreaming ? { ...msg, isStreaming: false } : msg))
+    );
   };
 
   const handleSendMessage = async (questionText) => {
+    if (!questionText.trim() || isSubmitting) return;
+
     setError(null);
     setLastQuestion(questionText);
     const userTimestamp = new Date().toISOString();
 
     const tempUserMessage = {
-      id: `tmp_${Date.now()}`,
+      id: `tmp_u_${Date.now()}`,
       conversation_id: conversationId,
       sender: 'user',
       text: questionText,
       timestamp: userTimestamp,
     };
 
-    // Optimistically show user question immediately
-    setMessages((prev) => [...prev, tempUserMessage]);
+    const tempAiMessageId = `tmp_ai_${Date.now()}`;
+    const tempAiMessage = {
+      id: tempAiMessageId,
+      conversation_id: conversationId,
+      sender: 'assistant',
+      text: '',
+      timestamp: new Date().toISOString(),
+      sources: [],
+      isStreaming: true,
+    };
+
+    // Optimistically show user question and streaming AI container
+    setMessages((prev) => [...prev, tempUserMessage, tempAiMessage]);
     setIsSubmitting(true);
-    setQueryStatus('Searching ChromaDB vector index...');
+    setIsStreaming(true);
+    setQueryStatus('Searching ChromaDB vector index & extracting policy chunks...');
 
-    // Multi-stage status transitions for rich UX feedback
-    const timer1 = setTimeout(() => {
-      setQueryStatus('Retrieving relevant policy chunks & citations...');
-    }, 450);
-
-    const timer2 = setTimeout(() => {
-      setQueryStatus('Synthesizing grounded response with citations...');
-    }, 900);
+    // Setup abort controller for stream interruption support
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     try {
-      const response = await api.chat.sendMessage({
+      await api.chat.sendMessageStream({
         conversation_id: conversationId,
         question: questionText,
+        signal: controller.signal,
+        onSources: (incomingSources) => {
+          setQueryStatus('Streaming grounded answer with citations...');
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === tempAiMessageId
+                ? { ...msg, sources: incomingSources }
+                : msg
+            )
+          );
+        },
+        onChunk: (_token, accumulatedText) => {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === tempAiMessageId
+                ? { ...msg, text: accumulatedText }
+                : msg
+            )
+          );
+        },
+        onDone: (finalResult) => {
+          if (!conversationId && finalResult?.conversation_id) {
+            setConversationId(finalResult.conversation_id);
+            setSearchParams({ id: finalResult.conversation_id });
+            setConversationTitle(questionText.slice(0, 35) + '...');
+          }
+
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === tempAiMessageId
+                ? {
+                    ...msg,
+                    id: finalResult?.message_id || msg.id,
+                    text: finalResult?.answer || msg.text,
+                    sources: finalResult?.sources || msg.sources,
+                    isStreaming: false,
+                  }
+                : msg
+            )
+          );
+        },
+        onError: (err) => {
+          throw err;
+        },
       });
-
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-
-      // Set or update active conversation id
-      if (!conversationId) {
-        setConversationId(response.conversation_id);
-        setSearchParams({ id: response.conversation_id });
-        setConversationTitle(questionText.slice(0, 35) + '...');
-      }
-
-      const aiMessage = {
-        id: response.message_id || `msg_ai_${Date.now()}`,
-        conversation_id: response.conversation_id,
-        sender: 'assistant',
-        text: response.answer,
-        timestamp: new Date().toISOString(),
-        sources: response.sources || [],
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      console.error('Chat error:', err);
-      setError(err.message || 'Unable to retrieve policy information. Please verify your connection or try again.');
+      if (controller.signal.aborted) {
+        // Handled cleanly by stop button
+        return;
+      }
+      console.error('Streaming error:', err);
+      setError(
+        err.message ||
+          'Connection interrupted while streaming response. Please check your network and try again.'
+      );
+
+      // Finalize or remove empty streaming message on error
+      setMessages((prev) => {
+        const streamMsg = prev.find((m) => m.id === tempAiMessageId);
+        if (streamMsg && !streamMsg.text) {
+          return prev.filter((m) => m.id !== tempAiMessageId);
+        }
+        return prev.map((m) =>
+          m.id === tempAiMessageId ? { ...m, isStreaming: false } : m
+        );
+      });
     } finally {
       setIsSubmitting(false);
+      setIsStreaming(false);
       setQueryStatus('');
+      abortControllerRef.current = null;
     }
   };
 
   const handleRetryLast = () => {
     if (lastQuestion) {
-      // Remove the last optimistically added user message if it had failed
+      // Remove failed transient messages
       setMessages((prev) => prev.filter((m) => !m.id.startsWith('tmp_')));
       handleSendMessage(lastQuestion);
     }
@@ -324,10 +392,12 @@ export function Chat() {
           </div>
         </div>
 
-        {/* Input Composer Area */}
+        {/* Input Composer Area with progressive streaming and stop controls */}
         <ChatInput
           onSendMessage={handleSendMessage}
           isSubmitting={isSubmitting}
+          isStreaming={isStreaming}
+          onStopGeneration={handleStopGeneration}
           showSuggestions={messages.length === 0}
         />
       </div>

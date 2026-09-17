@@ -348,11 +348,13 @@ export const MOCK_CONVERSATIONS = [
 export const MOCK_QA_DATABASE = [
   {
     keywords: ['leave', 'vacation', 'pto', 'annual leave', 'holidays', 'off'],
-    answer: "Employees in India are entitled to 18 days of paid annual leave per calendar year, accrued at 1.5 days per month. In addition, employees receive 12 days of sick/casual leave and 10 declared public holidays. Carry-over is capped at 8 days annually.",
+    answer: "Employees in India are entitled to 18 days of paid annual leave per calendar year [1], accrued at 1.5 days per month. In addition, employees receive 12 days of sick/casual leave and 10 declared public holidays [2]. Carry-over is capped at 8 days annually [1].",
     sources: [
       {
         document_id: 'doc_in_leave',
         chunk_id: 'chk_in_leave_041',
+        marker: '[1]',
+        citation_index: 1,
         document: 'India Leave Policy 2026',
         section: 'Section 4.1: Annual Leave Entitlement',
         page: 7,
@@ -364,6 +366,8 @@ export const MOCK_QA_DATABASE = [
       {
         document_id: 'doc_gl_handbook',
         chunk_id: 'chk_gl_handbook_112',
+        marker: '[2]',
+        citation_index: 2,
         document: 'Global Employee Handbook',
         section: 'Chapter 5: Statutory Leaves & Holidays',
         page: 34,
@@ -376,11 +380,13 @@ export const MOCK_QA_DATABASE = [
   },
   {
     keywords: ['insurance', 'medical', 'health', 'hospital', 'mediclaim', 'claim'],
-    answer: "The company provides a comprehensive Group Mediclaim Coverage (GMC) with ₹5,00,000 base floater coverage for employee, spouse, and up to 2 children. Cashless claims are accepted at 8,500+ network hospitals. OPD dental and optical expenses up to ₹15,000 are claimable annually.",
+    answer: "The company provides a comprehensive Group Mediclaim Coverage (GMC) with ₹5,00,000 base floater coverage for employee, spouse, and up to 2 children [1]. Cashless claims are accepted at 8,500+ network hospitals. OPD dental and optical expenses up to ₹15,000 are claimable annually [1].",
     sources: [
       {
         document_id: 'doc_in_insurance',
         chunk_id: 'chk_in_insurance_089',
+        marker: '[1]',
+        citation_index: 1,
         document: 'India Group Health Insurance Coverage',
         section: 'Section 3: Coverage Limits & OPD Reimbursement',
         page: 9,
@@ -393,11 +399,13 @@ export const MOCK_QA_DATABASE = [
   },
   {
     keywords: ['remote', 'hybrid', 'work from home', 'wfh', 'office', 'wfo'],
-    answer: "Under the Global Hybrid Work Framework 2026, teams operate on a standard 3:2 model (3 days in office, 2 days remote per week) aligned with team anchor days. Full remote arrangements require manager and HR VP approval based on business needs.",
+    answer: "Under the Global Hybrid Work Framework 2026 [1], teams operate on a standard 3:2 model (3 days in office, 2 days remote per week) aligned with team anchor days. Full remote arrangements require manager and HR VP approval based on business needs [1].",
     sources: [
       {
         document_id: 'doc_gl_remote',
         chunk_id: 'chk_gl_remote_015',
+        marker: '[1]',
+        citation_index: 1,
         document: 'Hybrid & Remote Work Framework',
         section: 'Section 2.2: Attendance & Core Working Hours',
         page: 3,
@@ -410,11 +418,13 @@ export const MOCK_QA_DATABASE = [
   },
   {
     keywords: ['parental', 'maternity', 'paternity', 'baby', 'child', 'adoption'],
-    answer: "Primary caregivers are entitled to 16 weeks of 100% paid parental leave, and secondary caregivers receive 6 weeks of 100% paid leave. The benefit applies to biological birth, surrogacy, and adoption within 12 months of arrival.",
+    answer: "Primary caregivers are entitled to 16 weeks of 100% paid parental leave [1], and secondary caregivers receive 6 weeks of 100% paid leave [1]. The benefit applies to biological birth, surrogacy, and adoption within 12 months of arrival [1].",
     sources: [
       {
         document_id: 'doc_gl_parental',
         chunk_id: 'chk_gl_parental_022',
+        marker: '[1]',
+        citation_index: 1,
         document: 'Global Parental & Caregiver Leave',
         section: 'Section 2: Primary Caregiver Provisions',
         page: 4,
