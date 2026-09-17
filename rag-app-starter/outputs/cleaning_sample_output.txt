@@ -1,0 +1,30 @@
+﻿Loading corpus...
+SKIP corrupt.pdf: Failed to read PDF: Stream has ended unexpectedly
+OK sample.html: 104 chars | '\n HTML Sample \n \n HTML Document \n This is a sample HTML docu'...
+OK sample.md: 126 chars | '# Markdown Sample\n\nThis is a **markdown** file.\n- It has lis'...
+OK sample.txt: 234 chars | 'This is a plain text document.\nIt contains some simple text '...
+
+Total documents successfully loaded: 3
+
+Applying cleaning pipeline...
+
+--- sample.html ---
+Length: 104 -> 96 chars
+BEFORE:
+'\n HTML Sample \n \n HTML Document \n This is a sample HTML document. The tags should be stripped out. \n \n \n'
+AFTER:
+'HTML Sample \n \n HTML Document \n This is a sample HTML document. The tags should be stripped out.'
+
+--- sample.md ---
+Length: 126 -> 125 chars
+BEFORE:
+'# Markdown Sample\n\nThis is a **markdown** file.\n- It has lists\n- And formatting\n\nIt should be loaded similarly to plain text.\n'
+AFTER:
+'# Markdown Sample\n\nThis is a **markdown** file.\n- It has lists\n- And formatting\n\nIt should be loaded similarly to plain text.'
+
+--- sample.txt ---
+Length: 234 -> 216 chars
+BEFORE:
+'This is a plain text document.\nIt contains some simple text to test the plain text loader.\nEverything here should be extracted as-is.\n\nPage 1 of 12\n\n\n'
+AFTER:
+'This is a plain text document.\nIt contains some simple text to test the plain text loader.\nEverything here should be extracted as-is.\n\n \nMore text... '

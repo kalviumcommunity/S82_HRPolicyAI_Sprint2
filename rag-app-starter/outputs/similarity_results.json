@@ -1,0 +1,25 @@
+{
+  "model": "sample-offline-model",
+  "query": "How many paid annual leave days can an employee take?",
+  "metric": "cosine_similarity",
+  "results": [
+    {
+      "score": 1.0,
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 0,
+        "section": "Annual leave"
+      }
+    },
+    {
+      "score": 0.968864,
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 1,
+        "section": "Requesting leave"
+      }
+    }
+  ]
+}

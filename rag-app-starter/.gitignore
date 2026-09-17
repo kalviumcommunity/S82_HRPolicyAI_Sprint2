@@ -3,6 +3,7 @@
 venv/
 ENV/
 env/
+.chroma/
 
 # Python compiled bytecode and cache
 __pycache__/
@@ -18,12 +19,39 @@ __pycache__/
 # Local data files and documents
 data/*
 !data/.gitkeep
+!data/sample_leave_policy.txt
 
 # Generated output files
 outputs/*
 !outputs/.gitkeep
+!outputs/embedding_results.json
+!outputs/embedding_results.txt
+!outputs/similarity_results.json
+!outputs/similarity_results.txt
+!outputs/batch_run_summary.json
+!outputs/batch_run_summary.txt
+!outputs/embedding_quality_report.json
+!outputs/embedding_quality_report.txt
 !outputs/prompt_comparison.md
 !outputs/comparison_results.json
+!outputs/token_estimation_report.md
+!outputs/token_analysis.json
+!outputs/vector_store_readback.json
+!outputs/vector_store_readback.txt
+!outputs/retrieval_tuning_results.json
+!outputs/retrieval_tuning_results.txt
+!outputs/reranking_results.json
+!outputs/reranking_results.txt
+!outputs/filtered_search_results.json
+!outputs/filtered_search_results.txt
+!outputs/labelled_queries.json
+!outputs/retrieval_evaluation_results.json
+!outputs/retrieval_evaluation_results.txt
+!outputs/rag_pipeline_results.json
+!outputs/rag_pipeline_results.txt
+!outputs/rag_requests.jsonl
+!outputs/rag_telemetry.log
+!outputs/telemetry_summary.json
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/

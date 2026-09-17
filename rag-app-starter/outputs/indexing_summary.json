@@ -1,0 +1,22 @@
+{
+  "database": "chroma",
+  "path": "D:\\S82_HRPolicyAI_Sprint2\\rag-app-starter\\.chroma",
+  "collection": "hr_policy_chunks",
+  "embedding_model": "sample-offline-model",
+  "vector_dimension": 4,
+  "distance_metric": "cosine",
+  "chunks_provided": 2,
+  "record_count": 2,
+  "counts_match": true,
+  "readback": {
+    "id": "sample_leave_policy.txt:0",
+    "vector_length": 4,
+    "text": "Employees may take up to 20 days of paid annual leave each year.",
+    "metadata": {
+      "section": "Annual leave",
+      "chunk_index": 0,
+      "source": "sample_leave_policy.txt"
+    }
+  },
+  "failures": []
+}

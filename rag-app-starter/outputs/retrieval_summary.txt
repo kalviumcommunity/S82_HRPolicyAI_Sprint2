@@ -1,0 +1,23 @@
+RETRIEVAL STEP VERIFICATION
+============================================================
+Embedding Model: sample-offline-model
+Query: 'What is the policy for annual leave?'
+
+RESULTS FOR k=1
+------------------------------------------------------------
+Rank 1 Score (Cosine Similarity): 0.997966
+Rank 1 Text: Employees may take up to 20 days of paid annual leave each year.
+Rank 1 Metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
+
+RESULTS FOR k=2
+------------------------------------------------------------
+Rank 1 Score (Cosine Similarity): 0.997966
+Rank 1 Text: Employees may take up to 20 days of paid annual leave each year.
+Rank 1 Metadata: {"chunk_index": 0, "section": "Annual leave", "source": "sample_leave_policy.txt"}
+
+Rank 2 Score (Cosine Similarity): 0.982679
+Rank 2 Text: Leave requests should be submitted to a manager at least two weeks in advance.
+Rank 2 Metadata: {"chunk_index": 1, "section": "Requesting leave", "source": "sample_leave_policy.txt"}
+
+PASS: Retrieved chunks include similarity scores, source text, and metadata.
+PASS: Demonstrated how retrieved results change with different k values.

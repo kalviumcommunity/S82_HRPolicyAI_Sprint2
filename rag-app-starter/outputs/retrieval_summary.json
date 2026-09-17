@@ -1,0 +1,44 @@
+{
+  "query": "What is the policy for annual leave?",
+  "embedding_model": "sample-offline-model",
+  "k_values_tested": [
+    1,
+    2
+  ],
+  "results_by_k": {
+    "1": [
+      {
+        "id": "sample_leave_policy.txt:0",
+        "score": 0.9979655146598816,
+        "text": "Employees may take up to 20 days of paid annual leave each year.",
+        "metadata": {
+          "chunk_index": 0,
+          "source": "sample_leave_policy.txt",
+          "section": "Annual leave"
+        }
+      }
+    ],
+    "2": [
+      {
+        "id": "sample_leave_policy.txt:0",
+        "score": 0.9979655146598816,
+        "text": "Employees may take up to 20 days of paid annual leave each year.",
+        "metadata": {
+          "chunk_index": 0,
+          "section": "Annual leave",
+          "source": "sample_leave_policy.txt"
+        }
+      },
+      {
+        "id": "sample_leave_policy.txt:1",
+        "score": 0.9826787710189819,
+        "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+        "metadata": {
+          "chunk_index": 1,
+          "source": "sample_leave_policy.txt",
+          "section": "Requesting leave"
+        }
+      }
+    ]
+  }
+}

@@ -20,11 +20,8 @@ logging.basicConfig(
 
 
 def create_client():
-    base_url = os.getenv("OPENAI_BASE_URL", os.getenv("API_BASE_URL"))
+    base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
     api_key = os.getenv("OPENAI_API_KEY")
-
-    if not base_url:
-        raise ValueError("OPENAI_BASE_URL / API_BASE_URL is missing from .env")
 
     if not api_key:
         raise ValueError("OPENAI_API_KEY is missing from .env")
@@ -91,4 +88,8 @@ def ask_hr_assistant(user_question=None, system_prompt=None):
 
 
 if __name__ == "__main__":
-    ask_hr_assistant()
+    try:
+        ask_hr_assistant()
+    except ValueError as err:
+        print(f"Configuration notice: {err}")
+        print("To run live queries, configure OPENAI_API_KEY and CHAT_MODEL in rag-app-starter/.env.")

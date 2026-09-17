@@ -1,0 +1,38 @@
+ACME GLOBAL HR POLICY: LEAVE, TIME OFF, AND ATTENDANCE (REV 2026.1)
+
+1. PURPOSE AND SCOPE
+This document outlines the standard leave entitlements, eligibility requirements, and procedures for requesting and approving paid and unpaid time off at Acme Global Inc. This policy applies to all active full-time and regular part-time employees across all global entities unless superseded by local statutory requirements.
+
+2. ANNUAL PAID TIME OFF (PTO)
+2.1 Accrual Rates:
+- Full-time regular employees accrue paid annual leave at a baseline rate of 1.67 days per full calendar month worked (totaling 20 standard working days per fiscal year).
+- Employees with 5+ years of continuous service accrue 2.08 days per month (25 days per fiscal year).
+- Part-time employees working at least 20 hours per week accrue PTO on a prorated basis according to their agreed contractual weekly hours.
+
+2.2 Carryover and Expiration:
+- A maximum of 5 unused PTO days may be carried over into the following calendar year. Any carried-over days must be utilized before March 31 of the new calendar year, after which they expire without cash payout.
+- Local statutory minimums will always take precedence where cash encashment is legally mandated.
+
+3. SICK AND MEDICAL LEAVE
+3.1 Short-Term Sick Leave:
+- All employees receive 10 days of paid sick leave annually on January 1st of each calendar year. Sick leave does not roll over and is not compensable upon termination.
+- Any consecutive medical absence exceeding 3 business days requires a formal medical certificate signed by a licensed healthcare practitioner submitted to HR within 48 hours of return.
+
+3.2 Extended Medical & Disability Leave:
+- In the event of serious long-term illness or injury, employees may apply for Short-Term Disability (STD) coverage after utilizing accrued sick days.
+
+4. PARENTAL LEAVE
+- Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave following the birth, adoption, or foster placement of a child.
+- Secondary caregivers are entitled to 4 consecutive weeks of fully paid parental leave to be taken within 12 months of the qualifying event.
+
+5. BEREAVEMENT AND COMPASSIONATE LEAVE
+- Up to 5 consecutive business days of paid leave are granted in the unfortunate event of the death of an immediate family member (spouse, partner, parent, sibling, child).
+- Up to 2 days are provided for extended family members (grandparents, aunts, uncles, in-laws).
+
+6. REQUEST AND APPROVAL PROCESS
+- All planned leave (annual PTO, parental leave) must be requested via the internal HR Information Portal (HRIP) at least 14 calendar days prior to the desired commencement date.
+- Requests require formal electronic approval by the employee's direct line manager before bookings or arrangements are finalized.
+- For emergency or unexpected absences, the employee must notify their supervisor and HR via email or Slack by 09:00 AM local time on the first day of absence.
+
+7. QUESTIONS AND ESCALATIONS
+For specific inquiries or exceptions, contact HR Operations at hr-operations@acmeglobal.internal.

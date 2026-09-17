@@ -1,0 +1,23 @@
+{
+  "model": "sample-offline-model",
+  "records": [
+    {
+      "text": "Employees may take up to 20 days of paid annual leave each year.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 0,
+        "section": "Annual leave"
+      },
+      "embedding": [0.1, 0.2, 0.3, 0.4]
+    },
+    {
+      "text": "Leave requests should be submitted to a manager at least two weeks in advance.",
+      "metadata": {
+        "source": "sample_leave_policy.txt",
+        "chunk_index": 1,
+        "section": "Requesting leave"
+      },
+      "embedding": [0.5, 0.6, 0.7, 0.8]
+    }
+  ]
+}

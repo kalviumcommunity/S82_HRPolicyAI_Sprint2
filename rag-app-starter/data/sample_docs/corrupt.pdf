@@ -1,0 +1,2 @@
+This is not a real PDF file.
+It should fail to parse when the PDF reader tries to read it, demonstrating graceful failure handling.
