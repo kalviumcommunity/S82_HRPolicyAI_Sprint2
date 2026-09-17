@@ -1,0 +1,39 @@
+======================================================================
+ASSIGNMENT 3.40: SOURCE CITATION & ATTRIBUTION SAMPLE RUNS
+======================================================================
+
+1. SINGLE SOURCE GROUNDED ANSWER:
+Question: How far in advance must a planned leave request be submitted?
+Answer:   Planned leave must be requested via the internal HR Information Portal (HRIP) at least 14 calendar days in advance and requires manager approval [1].
+Citations:
+  [1] Source: sample_leave_policy.txt | Section: 6. Request and Approval Process | Chunk ID: chunk_leave_004
+     Excerpt: All planned leave (annual PTO, parental leave) must be requested via the internal HR Information Portal (HRIP) at least 14 calendar days prior to the desired commencement date. Requests require formal electronic approval by the direct line manager.
+
+----------------------------------------------------------------------
+
+2. MULTI-SOURCE GROUNDED ANSWER:
+Question: What are the entitlements for paid sick leave and parental leave?
+Answer:   Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave, while secondary caregivers receive 4 weeks [1]. Employees receive 10 days of paid sick leave annually on January 1st, and medical absences exceeding 3 consecutive days require a medical certificate within 48 hours [2].
+Citations:
+  [1] Source: sample_leave_policy.txt | Section: 4. Parental Leave | Chunk ID: chunk_leave_003
+     Excerpt: Primary caregivers are eligible for up to 16 consecutive weeks of fully paid parental leave following the birth, adoption, or foster placement of a child. Secondary caregivers are entitled to 4 consecutive weeks of fully paid parental leave to be taken within 12 months.
+  [2] Source: sample_leave_policy.txt | Section: 3. Sick and Medical Leave | Chunk ID: chunk_leave_002
+     Excerpt: All employees receive 10 days of paid sick leave annually on January 1st of each calendar year. Any consecutive medical absence exceeding 3 business days requires a formal medical certificate signed by a licensed healthcare practitioner submitted to HR within 48 hours of return.
+
+----------------------------------------------------------------------
+
+3. VERIFICATION OF CITED SOURCE (TASK 3):
+Marker Verified: [1]
+Document:        sample_leave_policy.txt
+Section:         6. Request and Approval Process
+Chunk ID:        chunk_leave_004
+Original Text:   All planned leave (annual PTO, parental leave) must be requested via the internal HR Information Portal (HRIP) at least 14 calendar days prior to the desired commencement date. Requests require formal electronic approval by the direct line manager.
+Status:          CONFIRMED_GROUNDED
+
+----------------------------------------------------------------------
+
+4. NO-SOURCE FALLBACK (TASK 4 - AVOID FABRICATION):
+Question:        What is the company reimbursement policy for employee gym memberships and personal fitness equipment?
+Answer:          I do not have enough information in the provided context to answer this question.
+Citations:       {}
+Fabricated citations avoided: True

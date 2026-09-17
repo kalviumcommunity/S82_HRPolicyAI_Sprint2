@@ -54,6 +54,16 @@ text report to `outputs/rag_pipeline_results.json` and
 `outputs/rag_pipeline_results.txt`, including the generated answer and the
 retrieved sources.
 
+To run the source citation and attribution pipeline (Assignment 3.40), use `python src/source_citation.py`.
+This script ensures generated answers include discrete source references (`[1]`, `[2]`),
+maps citations back to chunk metadata (`source`, `chunk_id`, `chunk_index`, `section`, `page`),
+verifies cited sources against original chunk texts, avoids fabricated citations for unsupported questions
+via no-source fallbacks, and executes guardrail checks against hallucinated markers.
+Results and verification reports are saved to `outputs/citation_results.json`,
+`outputs/citation_sample_answers.txt`, and `outputs/CITATION_VERIFICATION_REPORT.md`.
+Run unit tests with `python -m unittest tests/test_source_citation.py`.
+
+
 ### Batch processing and reruns
 
 The embedding pipeline sends pending chunks in batches, retries rate-limit and
