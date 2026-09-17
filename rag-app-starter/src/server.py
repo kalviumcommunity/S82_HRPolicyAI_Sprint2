@@ -1,12 +1,15 @@
 import os
 import sys
 import uuid
+import json
+import asyncio
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 
 from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -194,11 +197,13 @@ CONVERSATIONS_DB: List[Dict[str, Any]] = [
 POLICY_KNOWLEDGE_BASE = [
     {
         "keywords": ["maternity", "mother", "pregnancy"],
-        "answer": "Under the India Maternity Benefit guidelines, female employees are entitled to 26 weeks (182 calendar days) of fully paid maternity leave for up to two surviving children. Applications should be submitted at least 8 weeks prior to the expected delivery date.",
+        "answer": "Under the India Maternity Benefit guidelines [1], female employees are entitled to 26 weeks (182 calendar days) of fully paid maternity leave for up to two surviving children. Applications should be submitted at least 8 weeks prior to the expected delivery date [1].",
         "sources": [
             {
                 "document_id": "doc_in_leave",
                 "chunk_id": "chk_in_leave_012",
+                "marker": "[1]",
+                "citation_index": 1,
                 "document": "India Leave Policy 2026",
                 "section": "Section 4.1: Maternity Leave",
                 "page": 12,
@@ -211,11 +216,13 @@ POLICY_KNOWLEDGE_BASE = [
     },
     {
         "keywords": ["paternity", "father", "parental"],
-        "answer": "Eligible fathers and secondary caregivers are entitled to 15 business days of paid paternity leave, which must be availed within 6 months of child birth or adoption.",
+        "answer": "Eligible fathers and secondary caregivers are entitled to 15 business days of paid paternity leave [1], which must be availed within 6 months of child birth or adoption [1].",
         "sources": [
             {
                 "document_id": "doc_gl_parental",
                 "chunk_id": "chk_gl_parental_007",
+                "marker": "[1]",
+                "citation_index": 1,
                 "document": "Global Parental & Caregiver Leave",
                 "section": "Section 3: Paternity Entitlement",
                 "page": 7,
@@ -228,11 +235,13 @@ POLICY_KNOWLEDGE_BASE = [
     },
     {
         "keywords": ["sick", "medical", "illness", "doctor"],
-        "answer": "Employees receive 12 days of paid medical/sick leave per calendar year. Medical certificates are mandatory for consecutive absences exceeding 3 working days.",
+        "answer": "Employees receive 12 days of paid medical/sick leave per calendar year [1]. Medical certificates are mandatory for consecutive absences exceeding 3 working days [1].",
         "sources": [
             {
                 "document_id": "doc_in_leave",
                 "chunk_id": "chk_in_leave_008",
+                "marker": "[1]",
+                "citation_index": 1,
                 "document": "India Leave Policy 2026",
                 "section": "Section 2.3: Medical Leave",
                 "page": 8,
@@ -245,11 +254,13 @@ POLICY_KNOWLEDGE_BASE = [
     },
     {
         "keywords": ["insurance", "gmc", "health", "hospital", "coverage", "claim"],
-        "answer": "The Group Medical Coverage (GMC) provides INR 5,00,000 baseline sum insured for the employee, spouse, and up to 2 dependent children. OPD dental and optical allowances are provided separately up to INR 15,000 annually.",
+        "answer": "The Group Medical Coverage (GMC) provides INR 5,00,000 baseline sum insured for the employee, spouse, and up to 2 dependent children [1]. OPD dental and optical allowances are provided separately up to INR 15,000 annually [1].",
         "sources": [
             {
                 "document_id": "doc_in_insurance",
                 "chunk_id": "chk_in_insurance_003",
+                "marker": "[1]",
+                "citation_index": 1,
                 "document": "India Group Health Insurance Coverage",
                 "section": "Policy Summary & Floater Limits",
                 "page": 3,
@@ -261,19 +272,34 @@ POLICY_KNOWLEDGE_BASE = [
         ]
     },
     {
-        "keywords": ["pto", "annual", "vacation", "earned leave", "holiday"],
-        "answer": "Full-time employees receive 20 days of paid annual/earned leave per year, accrued at 1.67 days per month. Unused leave up to 10 days can be carried forward to the next calendar year.",
+        "keywords": ["pto", "annual", "vacation", "earned leave", "holiday", "leave"],
+        "answer": "Full-time employees in India receive 18-20 days of paid annual/privilege leave per year [1], accrued monthly at 1.5 days per month. Unused leave up to 8-10 days can be carried forward to the next calendar year [1], [2].",
         "sources": [
             {
                 "document_id": "doc_in_leave",
                 "chunk_id": "chk_in_leave_004",
+                "marker": "[1]",
+                "citation_index": 1,
                 "document": "India Leave Policy 2026",
                 "section": "Section 2.1: Annual Privilege Leave",
                 "page": 4,
                 "region": "India",
                 "version": "2026.1",
                 "score": 0.96,
-                "excerpt": "Annual leave must be approved by the reporting manager at least 2 weeks in advance of planned vacation."
+                "excerpt": "Annual leave must be approved by the reporting manager at least 2 weeks in advance of planned vacation. Accrues at 1.5 days per completed month."
+            },
+            {
+                "document_id": "doc_gl_handbook",
+                "chunk_id": "chk_gl_handbook_001",
+                "marker": "[2]",
+                "citation_index": 2,
+                "document": "Global Employee Handbook",
+                "section": "Chapter 5: Statutory Leaves & Holidays",
+                "page": 34,
+                "region": "Global",
+                "version": "2026.2",
+                "score": 0.89,
+                "excerpt": "Statutory leave entitlements are governed by country-specific addenda. Carry-over limits are strictly enforced."
             }
         ]
     }
@@ -505,6 +531,98 @@ def chat(payload: ChatRequest):
         "answer": answer,
         "sources": sources
     }
+
+
+@app.post("/chat/stream")
+async def chat_stream(payload: ChatRequest):
+    conv_id = payload.conversation_id or f"conv_{uuid.uuid4().hex[:8]}"
+    question = payload.question.strip()
+    if not question:
+        raise HTTPException(status_code=400, detail="Question cannot be empty.")
+
+    answer, sources = generate_rag_response(question)
+    user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
+    ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
+
+    # Save to conversations DB
+    user_msg = {
+        "id": user_msg_id,
+        "conversation_id": conv_id,
+        "sender": "user",
+        "text": question,
+        "timestamp": "2026-03-01T12:00:00Z"
+    }
+    ai_msg = {
+        "id": ai_msg_id,
+        "conversation_id": conv_id,
+        "sender": "assistant",
+        "text": answer,
+        "timestamp": "2026-03-01T12:00:05Z",
+        "sources": sources
+    }
+
+    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
+    if not conv:
+        title = question[:40] + "..." if len(question) > 40 else question
+        conv = {
+            "id": conv_id,
+            "title": title,
+            "region": "India",
+            "date": "Today",
+            "updatedAt": "2026-03-01T12:00:00Z",
+            "messageCount": 2,
+            "preview": answer[:80] + "...",
+            "messages": [user_msg, ai_msg]
+        }
+        CONVERSATIONS_DB.insert(0, conv)
+    else:
+        conv["messages"].extend([user_msg, ai_msg])
+        conv["messageCount"] = len(conv["messages"])
+        conv["preview"] = answer[:80] + "..."
+
+    async def event_generator():
+        try:
+            # 1. Send sources metadata event immediately
+            sources_event = {
+                "conversation_id": conv_id,
+                "message_id": ai_msg_id,
+                "sources": sources
+            }
+            yield f"event: sources\ndata: {json.dumps(sources_event)}\n\n"
+            await asyncio.sleep(0.04)
+
+            # 2. Stream tokens/words progressively
+            words = answer.split(" ")
+            for idx, word in enumerate(words):
+                chunk_token = word + (" " if idx < len(words) - 1 else "")
+                token_event = {
+                    "token": chunk_token,
+                    "index": idx
+                }
+                yield f"event: token\ndata: {json.dumps(token_event)}\n\n"
+                await asyncio.sleep(0.025)
+
+            # 3. Send done event
+            done_event = {
+                "conversation_id": conv_id,
+                "message_id": ai_msg_id,
+                "answer": answer,
+                "sources": sources
+            }
+            yield f"event: done\ndata: {json.dumps(done_event)}\n\n"
+        except Exception as err:
+            logger.error("Error during streaming: %s", err)
+            yield f"event: error\ndata: {json.dumps({'error': str(err)})}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        }
+    )
 
 
 @app.get("/conversations")
