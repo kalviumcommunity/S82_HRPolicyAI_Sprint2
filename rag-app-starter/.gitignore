@@ -49,6 +49,9 @@ outputs/*
 !outputs/retrieval_evaluation_results.txt
 !outputs/rag_pipeline_results.json
 !outputs/rag_pipeline_results.txt
+!outputs/rag_requests.jsonl
+!outputs/rag_telemetry.log
+!outputs/telemetry_summary.json
 
 # Node packages (in case a frontend/UI is added in the future)
 node_modules/

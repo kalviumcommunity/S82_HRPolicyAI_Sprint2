@@ -1,11 +1,12 @@
 // src/components/chat/ChatMessage.jsx
 import React, { useState } from 'react';
-import { Sparkles, User, Copy, Check, ThumbsUp, ThumbsDown, ShieldCheck, BookOpen, Layers } from 'lucide-react';
+import { Sparkles, User, Copy, Check, ThumbsUp, ThumbsDown, ShieldCheck, BookOpen, Layers, Zap } from 'lucide-react';
 import { SourceCard } from './SourceCard';
 
 export function ChatMessage({ message, onSelectSource }) {
   const isUser = message.sender === 'user';
   const isStreaming = message.isStreaming || false;
+  const isCacheHit = message.cache_hit || false;
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState(null); // 'like' | 'dislike'
 
@@ -128,13 +129,19 @@ export function ChatMessage({ message, onSelectSource }) {
         </div>
 
         <div className="flex-1 bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-4 sm:p-5 shadow-xs transition-all">
-          {/* Header with Grounded Badge */}
-          <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800">
+          {/* Header with Grounded Badge & Cache Hit indicator */}
+          <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-100 flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 flex-wrap">
               <span>HRPolicyAI</span>
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
                 <ShieldCheck className="w-3 h-3" /> Grounded in Policy
               </span>
+              {isCacheHit && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 shadow-2xs">
+                  <Zap className="w-2.5 h-2.5 text-amber-600 fill-amber-500" />
+                  Cached (Instant · 0.00s)
+                </span>
+              )}
               {isStreaming && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-200 animate-pulse">
                   Streaming answer...

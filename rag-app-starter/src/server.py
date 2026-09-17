@@ -13,6 +13,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
+from telemetry_manager import telemetry, estimate_tokens, calculate_cost
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -485,7 +487,43 @@ def chat(payload: ChatRequest):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    answer, sources = generate_rag_response(question)
+    start_time = time.time()
+    
+    # 1. Check Query Cache
+    cached_result = telemetry.cache.get(question, region="India")
+    if cached_result:
+        answer, sources = cached_result
+        cache_hit = True
+        latency_ms = (time.time() - start_time) * 1000.0 + 1.5
+    else:
+        answer, sources = generate_rag_response(question)
+        cache_hit = False
+        latency_ms = (time.time() - start_time) * 1000.0
+        
+        # Save to cache
+        prompt_toks = estimate_tokens(question) + 120
+        comp_toks = estimate_tokens(answer)
+        cost = calculate_cost(prompt_toks, comp_toks)
+        telemetry.cache.set(
+            query=question,
+            region="India",
+            answer=answer,
+            sources=sources,
+            tokens={"prompt": prompt_toks, "completion": comp_toks},
+            cost=cost
+        )
+
+    # 2. Record Telemetry Log
+    telemetry.log_request(
+        question=question,
+        answer=answer,
+        sources=sources,
+        cache_hit=cache_hit,
+        latency_ms=latency_ms,
+        region="India",
+        model="gpt-3.5-turbo"
+    )
+
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -494,15 +532,17 @@ def chat(payload: ChatRequest):
         "conversation_id": conv_id,
         "sender": "user",
         "text": question,
-        "timestamp": "2026-03-01T12:00:00Z"
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     ai_msg = {
         "id": ai_msg_id,
         "conversation_id": conv_id,
         "sender": "assistant",
         "text": answer,
-        "timestamp": "2026-03-01T12:00:05Z",
-        "sources": sources
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "sources": sources,
+        "cache_hit": cache_hit,
+        "latency_ms": round(latency_ms, 2)
     }
 
     # Find or create conversation
@@ -514,7 +554,7 @@ def chat(payload: ChatRequest):
             "title": title,
             "region": "India",
             "date": "Today",
-            "updatedAt": "2026-03-01T12:00:00Z",
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
             "messageCount": 2,
             "preview": answer[:80] + "...",
             "messages": [user_msg, ai_msg]
@@ -529,7 +569,9 @@ def chat(payload: ChatRequest):
         "conversation_id": conv_id,
         "message_id": ai_msg_id,
         "answer": answer,
-        "sources": sources
+        "sources": sources,
+        "cache_hit": cache_hit,
+        "latency_ms": round(latency_ms, 2)
     }
 
 
@@ -540,7 +582,38 @@ async def chat_stream(payload: ChatRequest):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    answer, sources = generate_rag_response(question)
+    start_time = time.time()
+    cached_result = telemetry.cache.get(question, region="India")
+    if cached_result:
+        answer, sources = cached_result
+        cache_hit = True
+        latency_ms = (time.time() - start_time) * 1000.0 + 1.2
+    else:
+        answer, sources = generate_rag_response(question)
+        cache_hit = False
+        latency_ms = (time.time() - start_time) * 1000.0
+        prompt_toks = estimate_tokens(question) + 120
+        comp_toks = estimate_tokens(answer)
+        cost = calculate_cost(prompt_toks, comp_toks)
+        telemetry.cache.set(
+            query=question,
+            region="India",
+            answer=answer,
+            sources=sources,
+            tokens={"prompt": prompt_toks, "completion": comp_toks},
+            cost=cost
+        )
+
+    telemetry.log_request(
+        question=question,
+        answer=answer,
+        sources=sources,
+        cache_hit=cache_hit,
+        latency_ms=latency_ms,
+        region="India",
+        model="gpt-3.5-turbo"
+    )
+
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -550,15 +623,16 @@ async def chat_stream(payload: ChatRequest):
         "conversation_id": conv_id,
         "sender": "user",
         "text": question,
-        "timestamp": "2026-03-01T12:00:00Z"
+        "timestamp": datetime.now(timezone.utc).isoformat()
     }
     ai_msg = {
         "id": ai_msg_id,
         "conversation_id": conv_id,
         "sender": "assistant",
         "text": answer,
-        "timestamp": "2026-03-01T12:00:05Z",
-        "sources": sources
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "sources": sources,
+        "cache_hit": cache_hit
     }
 
     conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
@@ -569,7 +643,7 @@ async def chat_stream(payload: ChatRequest):
             "title": title,
             "region": "India",
             "date": "Today",
-            "updatedAt": "2026-03-01T12:00:00Z",
+            "updatedAt": datetime.now(timezone.utc).isoformat(),
             "messageCount": 2,
             "preview": answer[:80] + "...",
             "messages": [user_msg, ai_msg]
@@ -586,13 +660,15 @@ async def chat_stream(payload: ChatRequest):
             sources_event = {
                 "conversation_id": conv_id,
                 "message_id": ai_msg_id,
-                "sources": sources
+                "sources": sources,
+                "cache_hit": cache_hit
             }
             yield f"event: sources\ndata: {json.dumps(sources_event)}\n\n"
-            await asyncio.sleep(0.04)
+            await asyncio.sleep(0.02)
 
-            # 2. Stream tokens/words progressively
+            # 2. Stream tokens/words progressively (faster if cache hit)
             words = answer.split(" ")
+            token_delay = 0.008 if cache_hit else 0.025
             for idx, word in enumerate(words):
                 chunk_token = word + (" " if idx < len(words) - 1 else "")
                 token_event = {
@@ -600,14 +676,16 @@ async def chat_stream(payload: ChatRequest):
                     "index": idx
                 }
                 yield f"event: token\ndata: {json.dumps(token_event)}\n\n"
-                await asyncio.sleep(0.025)
+                await asyncio.sleep(token_delay)
 
             # 3. Send done event
             done_event = {
                 "conversation_id": conv_id,
                 "message_id": ai_msg_id,
                 "answer": answer,
-                "sources": sources
+                "sources": sources,
+                "cache_hit": cache_hit,
+                "latency_ms": round(latency_ms, 2)
             }
             yield f"event: done\ndata: {json.dumps(done_event)}\n\n"
         except Exception as err:
@@ -623,6 +701,23 @@ async def chat_stream(payload: ChatRequest):
             "X-Accel-Buffering": "no",
         }
     )
+
+
+# 2.1 Telemetry & Usage Analytics Endpoints
+@app.get("/telemetry/summary")
+def get_telemetry_summary():
+    return telemetry.get_summary()
+
+
+@app.get("/telemetry/logs")
+def get_telemetry_logs():
+    return telemetry.logs
+
+
+@app.post("/telemetry/cache/clear")
+def clear_telemetry_cache():
+    telemetry.cache.clear()
+    return {"success": True, "message": "Query cache cleared successfully."}
 
 
 @app.get("/conversations")

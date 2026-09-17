@@ -601,4 +601,78 @@ export const api = {
       };
     },
   },
+
+  telemetry: {
+    async getSummary() {
+      if (!USE_MOCK) {
+        return fetchClient('/telemetry/summary');
+      }
+
+      await delay(250);
+      return {
+        total_requests: 10,
+        cache_hits: 4,
+        cache_misses: 6,
+        cache_hit_rate_percent: 40.0,
+        total_tokens: 1793,
+        prompt_tokens: 1190,
+        completion_tokens: 603,
+        total_cost_usd: 0.000818,
+        total_cost_saved_usd: 0.00057,
+        average_latency_ms: 49.03,
+        cached_entries: 6,
+        recent_requests: [
+          {
+            request_id: 'req_a1b2c3d4',
+            timestamp: new Date().toISOString(),
+            question: 'What is the maternity leave duration in India?',
+            cache_hit: true,
+            latency_ms: 1.2,
+            tokens: { total_tokens: 182 },
+            cost: { estimated_cost_usd: 0.0, cost_saved_usd: 0.000085 },
+            status: 'SUCCESS',
+          },
+          {
+            request_id: 'req_e5f6g7h8',
+            timestamp: new Date(Date.now() - 60000).toISOString(),
+            question: 'What is the parental leave duration for new parents?',
+            cache_hit: true,
+            latency_ms: 1.3,
+            tokens: { total_tokens: 169 },
+            cost: { estimated_cost_usd: 0.0, cost_saved_usd: 0.000078 },
+            status: 'SUCCESS',
+          },
+          {
+            request_id: 'req_i9j0k1l2',
+            timestamp: new Date(Date.now() - 120000).toISOString(),
+            question: 'Does our health insurance cover dependent parents in India?',
+            cache_hit: true,
+            latency_ms: 1.2,
+            tokens: { total_tokens: 187 },
+            cost: { estimated_cost_usd: 0.0, cost_saved_usd: 0.000088 },
+            status: 'SUCCESS',
+          },
+          {
+            request_id: 'req_m3n4o5p6',
+            timestamp: new Date(Date.now() - 180000).toISOString(),
+            question: 'How many annual leave days can I take in India?',
+            cache_hit: false,
+            latency_ms: 81.5,
+            tokens: { total_tokens: 189 },
+            cost: { estimated_cost_usd: 0.000089, cost_saved_usd: 0.0 },
+            status: 'SUCCESS',
+          },
+        ],
+      };
+    },
+
+    async clearCache() {
+      if (!USE_MOCK) {
+        return fetchClient('/telemetry/cache/clear', { method: 'POST' });
+      }
+
+      await delay(200);
+      return { success: true, message: 'Query cache cleared successfully.' };
+    },
+  },
 };
