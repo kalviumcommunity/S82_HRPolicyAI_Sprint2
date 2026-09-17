@@ -375,45 +375,86 @@ def require_admin(request: Request) -> dict:
     return user
 
 
+MIN_TOP_SCORE = 0.72
+MIN_SUPPORTING_CHUNKS = 1
+
+def retrieval_is_strong(chunks: list) -> bool:
+    if not chunks:
+        return False
+    strong_chunks = [chunk for chunk in chunks if chunk["score"] >= MIN_TOP_SCORE]
+    return len(strong_chunks) >= MIN_SUPPORTING_CHUNKS
+
+def build_citation_map(chunks: list) -> dict:
+    citation_map = {}
+    for index, chunk in enumerate(chunks, start=1):
+        citation_map[f"[{index}]"] = {
+            "document_id": chunk["metadata"].get("source", "Unknown"),
+            "document": chunk["metadata"].get("source", "Unknown Document"),
+            "section": chunk["metadata"].get("section", "General"),
+            "page": chunk["metadata"].get("page", 1),
+            "region": chunk["metadata"].get("region", "Global"),
+            "version": chunk["metadata"].get("version", "Latest"),
+            "excerpt": chunk["text"][:200] + "..." if len(chunk["text"]) > 200 else chunk["text"]
+        }
+    return citation_map
+
+
 def generate_rag_response(question: str) -> tuple[str, list]:
     """Execute live RAG if OpenAI and vector store configured, otherwise grounded knowledge base."""
     api_key = os.getenv("OPENAI_API_KEY")
     chat_model = os.getenv("CHAT_MODEL", "gpt-3.5-turbo")
+    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     
     # Check if we can perform Chroma/OpenAI RAG
     if api_key:
         try:
             from openai import OpenAI
+            import chromadb
+            from retrieval import embed_query, get_collection, retrieve_chunks
+            from prompts.answer import render_answer_prompt
+            
             base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
             client = OpenAI(api_key=api_key, base_url=base_url)
             
-            # Use prompts template
-            from prompts.answer import render_answer_prompt
+            # Setup Chroma
+            db_path = PROJECT_ROOT / ".chroma"
+            chroma_client = chromadb.PersistentClient(path=str(db_path))
+            collection = get_collection(chroma_client, "hr_policy_chunks")
+            
+            # Retrieve chunks
+            query_embedding = embed_query(question, client, embedding_model)
+            chunks = retrieve_chunks(collection, query_embedding, k=3)
+            
+            # Guardrails check
+            if not retrieval_is_strong(chunks):
+                return "I don't know based on the provided information. I can only answer questions related to company policies.", []
+            
+            # Build Citation Map and Context
+            citation_map = build_citation_map(chunks)
+            context_blocks = []
+            for i, chunk in enumerate(chunks, start=1):
+                marker = f"[{i}]"
+                context_blocks.append(f"{marker} {chunk['metadata'].get('section', 'General')} ({chunk['metadata'].get('source', 'Unknown')})\n{chunk['text']}")
+            
+            context_text = "\n\n".join(context_blocks)
             prompt = render_answer_prompt(
-                context="All official company policies from Global Handbook and India Leave Policy 2026.",
+                context=context_text,
                 question=question
             )
             
             response = client.chat.completions.create(
                 model=chat_model,
                 messages=[
-                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations."},
+                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations. Always refer to the exact source markers provided in the context (e.g. [1], [2])."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.2
             )
             answer = response.choices[0].message.content
-            sources = [
-                {
-                    "document_id": "doc_gl_handbook",
-                    "document": "Global Employee Handbook",
-                    "section": "General Policies",
-                    "page": 1,
-                    "region": "Global",
-                    "version": "2026.2",
-                    "excerpt": "Policies apply company-wide according to regional jurisdictions."
-                }
-            ]
+            
+            # Map the citations back to source lists
+            sources = list(citation_map.values())
+            
             return answer, sources
         except Exception as e:
             logger.warning("LLM API call failed, falling back to grounded knowledge base: %s", e)
