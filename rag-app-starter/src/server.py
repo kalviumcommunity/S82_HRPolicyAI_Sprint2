@@ -11,7 +11,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Request, Depends, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, FileResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -351,6 +351,19 @@ class ChatRequest(BaseModel):
     question: str
     conversation_id: Optional[str] = None
 
+class QueryRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=1000)
+
+class Source(BaseModel):
+    source: str
+    chunk_id: Optional[str] = None
+    score: Optional[float] = None
+
+class QueryResponse(BaseModel):
+    answer: str
+    sources: List[Source]
+    status: str
+
 
 # --- Helper Methods ---
 def get_current_user(request: Request):
@@ -375,45 +388,112 @@ def require_admin(request: Request) -> dict:
     return user
 
 
-def generate_rag_response(question: str) -> tuple[str, list]:
+MIN_TOP_SCORE = 0.72
+MIN_SUPPORTING_CHUNKS = 1
+
+def retrieval_is_strong(chunks: list) -> bool:
+    if not chunks:
+        return False
+    strong_chunks = [chunk for chunk in chunks if chunk["score"] >= MIN_TOP_SCORE]
+    return len(strong_chunks) >= MIN_SUPPORTING_CHUNKS
+
+def build_citation_map(chunks: list) -> dict:
+    citation_map = {}
+    for index, chunk in enumerate(chunks, start=1):
+        citation_map[f"[{index}]"] = {
+            "document_id": chunk["metadata"].get("source", "Unknown"),
+            "document": chunk["metadata"].get("source", "Unknown Document"),
+            "section": chunk["metadata"].get("section", "General"),
+            "page": chunk["metadata"].get("page", 1),
+            "region": chunk["metadata"].get("region", "Global"),
+            "version": chunk["metadata"].get("version", "Latest"),
+            "excerpt": chunk["text"][:200] + "..." if len(chunk["text"]) > 200 else chunk["text"]
+        }
+    return citation_map
+
+def rewrite_followup(client, model, history, question):
+    if not history:
+        return question
+    
+    # Keep only the last 3 turns (6 messages) to prevent context overflow and token bloat
+    recent_history = history[-6:]
+    history_text = "\n".join([f"{msg['sender'].capitalize()}: {msg['text']}" for msg in recent_history])
+    
+    prompt = f"""Rewrite the user's latest question as a standalone search query. 
+Use the conversation history only to resolve references (like "it", "they", "this policy"). 
+Do not answer the question. 
+History:
+{history_text}
+Latest question: {question}
+Standalone query:"""
+    
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.0
+    )
+    return response.choices[0].message.content.strip()
+
+
+def generate_rag_response(question: str, history: list = None) -> tuple[str, list]:
     """Execute live RAG if OpenAI and vector store configured, otherwise grounded knowledge base."""
     api_key = os.getenv("OPENAI_API_KEY")
     chat_model = os.getenv("CHAT_MODEL", "gpt-3.5-turbo")
+    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
     
     # Check if we can perform Chroma/OpenAI RAG
     if api_key:
         try:
             from openai import OpenAI
+            import chromadb
+            from retrieval import embed_query, get_collection, retrieve_chunks
+            from prompts.answer import render_answer_prompt
+            
             base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("API_BASE_URL") or "https://api.openai.com/v1"
             client = OpenAI(api_key=api_key, base_url=base_url)
             
-            # Use prompts template
-            from prompts.answer import render_answer_prompt
+            # Rewrite follow-up question if history is provided
+            standalone_query = rewrite_followup(client, chat_model, history, question)
+            logger.info("Original question: %s | Standalone query: %s", question, standalone_query)
+            
+            # Setup Chroma
+            db_path_env = os.getenv("VECTOR_DB_URL")
+            db_path = Path(db_path_env) if db_path_env else PROJECT_ROOT / ".chroma"
+            chroma_client = chromadb.PersistentClient(path=str(db_path))
+            collection_name = os.getenv("COLLECTION_NAME", "hr_policy_chunks")
+            collection = get_collection(chroma_client, collection_name)
+            
+            # Retrieve chunks
+            query_embedding = embed_query(standalone_query, client, embedding_model)
+            chunks = retrieve_chunks(collection, query_embedding, k=3)
+            
+            # Guardrails check
+            if not retrieval_is_strong(chunks):
+                return "I don't have enough reliable context to answer that.", []
+            
+            # Build Citation Map and Context
+            citation_map = build_citation_map(chunks)
+            context_blocks = []
+            for i, chunk in enumerate(chunks, start=1):
+                marker = f"[{i}]"
+                context_blocks.append(f"{marker} {chunk['metadata'].get('section', 'General')} ({chunk['metadata'].get('source', 'Unknown')})\n{chunk['text']}")
+            
+            context_text = "\n\n".join(context_blocks)
             prompt = render_answer_prompt(
-                context="All official company policies from Global Handbook and India Leave Policy 2026.",
+                context=context_text,
                 question=question
             )
             
             response = client.chat.completions.create(
                 model=chat_model,
                 messages=[
-                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations."},
+                    {"role": "system", "content": "You are the HRPolicyAI enterprise assistant. Provide concise, grounded answers with citations. Always refer to the exact source markers provided in the context (e.g. [1], [2])."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.2
             )
             answer = response.choices[0].message.content
-            sources = [
-                {
-                    "document_id": "doc_gl_handbook",
-                    "document": "Global Employee Handbook",
-                    "section": "General Policies",
-                    "page": 1,
-                    "region": "Global",
-                    "version": "2026.2",
-                    "excerpt": "Policies apply company-wide according to regional jurisdictions."
-                }
-            ]
+            sources = list(citation_map.values())
             return answer, sources
         except Exception as e:
             logger.warning("LLM API call failed, falling back to grounded knowledge base: %s", e)
@@ -533,7 +613,10 @@ def chat(payload: ChatRequest):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
-    answer, sources = generate_rag_response(question)
+    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
+    history = conv["messages"] if conv else []
+
+    answer, sources = generate_rag_response(question, history)
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -554,7 +637,6 @@ def chat(payload: ChatRequest):
     }
 
     # Find or create conversation
-    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
     if not conv:
         title = question[:40] + "..." if len(question) > 40 else question
         conv = {
@@ -591,8 +673,11 @@ async def chat_stream(payload: ChatRequest, request: Request):
     if not question:
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 
+    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
+    history = conv["messages"] if conv else []
+
     # Get the full answer synchronously first (RAG pipeline)
-    answer, sources = generate_rag_response(question)
+    answer, sources = generate_rag_response(question, history)
     user_msg_id = f"msg_u_{uuid.uuid4().hex[:6]}"
     ai_msg_id = f"msg_a_{uuid.uuid4().hex[:6]}"
 
@@ -602,7 +687,6 @@ async def chat_stream(payload: ChatRequest, request: Request):
     ai_msg = {"id": ai_msg_id, "conversation_id": conv_id, "sender": "assistant",
               "text": answer, "timestamp": datetime.utcnow().isoformat() + "Z", "sources": sources}
 
-    conv = next((c for c in CONVERSATIONS_DB if c["id"] == conv_id), None)
     if not conv:
         title = question[:40] + "..." if len(question) > 40 else question
         conv = {"id": conv_id, "title": title, "region": "India", "date": "Today",
@@ -641,6 +725,28 @@ async def chat_stream(payload: ChatRequest, request: Request):
         }
     )
 
+
+@app.post("/query", response_model=QueryResponse)
+def query_rag(request: QueryRequest):
+    """Exposed API endpoint for RAG query processing."""
+    try:
+        answer, sources_list = generate_rag_response(request.question)
+        sources = [
+            Source(
+                source=s.get("document", "Unknown"),
+                chunk_id=s.get("document_id"),
+                score=None
+            ) for s in sources_list
+        ]
+        status = "answered"
+        if answer == "I don't have enough reliable context to answer that." or "fallback" in answer.lower():
+            status = "unanswered"
+        return QueryResponse(answer=answer, sources=sources, status=status)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+    except Exception as e:
+        logger.error(f"RAG service failed: {e}")
+        raise HTTPException(status_code=500, detail="RAG service failed")
 
 @app.get("/conversations")
 def get_conversations():
