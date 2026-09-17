@@ -34,6 +34,8 @@ export function Chat() {
   const [queryStatus, setQueryStatus] = useState(''); // e.g. "Searching HR policies...", "Synthesizing answer..."
   const [error, setError] = useState(null);
 
+  const [lastQuestion, setLastQuestion] = useState('');
+
   // Active source for the SourceModal
   const [activeSource, setActiveSource] = useState(null);
 
@@ -73,7 +75,7 @@ export function Chat() {
         setMessages(data.messages || []);
       } catch (err) {
         console.error('Failed to load conversation:', err);
-        setError('Unable to load requested conversation history.');
+        setError('Unable to load requested conversation history. Please check your network or try again.');
       } finally {
         setLoadingConv(false);
       }
@@ -88,10 +90,12 @@ export function Chat() {
     setConversationTitle('New HR Policy Consultation');
     setMessages([]);
     setError(null);
+    setLastQuestion('');
   };
 
   const handleSendMessage = async (questionText) => {
     setError(null);
+    setLastQuestion(questionText);
     const userTimestamp = new Date().toISOString();
 
     const tempUserMessage = {
@@ -105,12 +109,16 @@ export function Chat() {
     // Optimistically show user question immediately
     setMessages((prev) => [...prev, tempUserMessage]);
     setIsSubmitting(true);
-    setQueryStatus('Searching HR policy knowledge base...');
+    setQueryStatus('Searching ChromaDB vector index...');
 
-    // Small status transition for realistic RAG pipeline feedback
-    const timer = setTimeout(() => {
-      setQueryStatus('Retrieving policy excerpts & formulating response...');
-    }, 400);
+    // Multi-stage status transitions for rich UX feedback
+    const timer1 = setTimeout(() => {
+      setQueryStatus('Retrieving relevant policy chunks & citations...');
+    }, 450);
+
+    const timer2 = setTimeout(() => {
+      setQueryStatus('Synthesizing grounded response with citations...');
+    }, 900);
 
     try {
       const response = await api.chat.sendMessage({
@@ -118,7 +126,8 @@ export function Chat() {
         question: questionText,
       });
 
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
 
       // Set or update active conversation id
       if (!conversationId) {
@@ -138,12 +147,21 @@ export function Chat() {
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (err) {
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
       console.error('Chat error:', err);
-      setError(err.message || 'Unable to retrieve policy information. Please try again.');
+      setError(err.message || 'Unable to retrieve policy information. Please verify your connection or try again.');
     } finally {
       setIsSubmitting(false);
       setQueryStatus('');
+    }
+  };
+
+  const handleRetryLast = () => {
+    if (lastQuestion) {
+      // Remove the last optimistically added user message if it had failed
+      setMessages((prev) => prev.filter((m) => !m.id.startsWith('tmp_')));
+      handleSendMessage(lastQuestion);
     }
   };
 
@@ -268,12 +286,34 @@ export function Chat() {
                   </div>
                 )}
 
-                {/* Inline submission error */}
+                {/* Inline submission error with Retry & Dismiss */}
                 {error && (
-                  <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 mb-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                      <span>{error}</span>
+                  <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-start sm:items-center gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5 sm:mt-0" />
+                      <div>
+                        <span className="font-semibold block sm:inline mr-1">Query Failed:</span>
+                        <span>{error}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                      {lastQuestion && (
+                        <button
+                          type="button"
+                          onClick={handleRetryLast}
+                          className="flex items-center gap-1 px-2.5 py-1 bg-white border border-rose-300 hover:bg-rose-100 text-rose-700 font-semibold rounded-lg text-xs transition-colors cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Retry</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setError(null)}
+                        className="px-2 py-1 text-slate-500 hover:text-slate-800 hover:bg-rose-100 rounded-lg text-xs transition-colors cursor-pointer"
+                      >
+                        Dismiss
+                      </button>
                     </div>
                   </div>
                 )}

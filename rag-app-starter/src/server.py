@@ -175,11 +175,13 @@ CONVERSATIONS_DB: List[Dict[str, Any]] = [
                 "sources": [
                     {
                         "document_id": "doc_in_leave",
+                        "chunk_id": "chk_in_leave_012",
                         "document": "India Leave Policy 2026",
                         "section": "Section 4.1: Maternity Leave",
                         "page": 12,
                         "region": "India",
                         "version": "2026.1",
+                        "score": 0.96,
                         "excerpt": "Female employees who have worked for at least 80 days in the preceding 12 months are entitled to 26 weeks of paid leave.",
                     }
                 ],
@@ -196,11 +198,13 @@ POLICY_KNOWLEDGE_BASE = [
         "sources": [
             {
                 "document_id": "doc_in_leave",
+                "chunk_id": "chk_in_leave_012",
                 "document": "India Leave Policy 2026",
                 "section": "Section 4.1: Maternity Leave",
                 "page": 12,
                 "region": "India",
                 "version": "2026.1",
+                "score": 0.98,
                 "excerpt": "Female employees who have worked for at least 80 days in the 12 months preceding the date of expected delivery are entitled to 26 weeks of paid leave."
             }
         ]
@@ -211,11 +215,13 @@ POLICY_KNOWLEDGE_BASE = [
         "sources": [
             {
                 "document_id": "doc_gl_parental",
+                "chunk_id": "chk_gl_parental_007",
                 "document": "Global Parental & Caregiver Leave",
                 "section": "Section 3: Paternity Entitlement",
                 "page": 7,
                 "region": "Global",
                 "version": "2026.0",
+                "score": 0.95,
                 "excerpt": "Secondary caregivers receive up to 15 working days of paid leave within 180 days of the qualifying life event."
             }
         ]
@@ -226,11 +232,13 @@ POLICY_KNOWLEDGE_BASE = [
         "sources": [
             {
                 "document_id": "doc_in_leave",
+                "chunk_id": "chk_in_leave_008",
                 "document": "India Leave Policy 2026",
                 "section": "Section 2.3: Medical Leave",
                 "page": 8,
                 "region": "India",
                 "version": "2026.1",
+                "score": 0.94,
                 "excerpt": "Medical leaves accrue on a quarterly basis. A registered medical practitioner certificate is required for leaves of 3+ consecutive days."
             }
         ]
@@ -241,11 +249,13 @@ POLICY_KNOWLEDGE_BASE = [
         "sources": [
             {
                 "document_id": "doc_in_insurance",
+                "chunk_id": "chk_in_insurance_003",
                 "document": "India Group Health Insurance Coverage",
                 "section": "Policy Summary & Floater Limits",
                 "page": 3,
                 "region": "India",
                 "version": "2026.1",
+                "score": 0.97,
                 "excerpt": "The standard policy covers hospitalization expenses up to 5 lakhs INR with cashless facility at all network hospitals."
             }
         ]
@@ -256,11 +266,13 @@ POLICY_KNOWLEDGE_BASE = [
         "sources": [
             {
                 "document_id": "doc_in_leave",
+                "chunk_id": "chk_in_leave_004",
                 "document": "India Leave Policy 2026",
                 "section": "Section 2.1: Annual Privilege Leave",
                 "page": 4,
                 "region": "India",
                 "version": "2026.1",
+                "score": 0.96,
                 "excerpt": "Annual leave must be approved by the reporting manager at least 2 weeks in advance of planned vacation."
             }
         ]
@@ -353,11 +365,13 @@ def generate_rag_response(question: str) -> tuple[str, list]:
     default_sources = [
         {
             "document_id": "doc_gl_handbook",
+            "chunk_id": "chk_gl_handbook_001",
             "document": "Global Employee Handbook",
             "section": "Chapter 1: General Employment Principles",
             "page": 5,
             "region": "Global",
             "version": "2026.2",
+            "score": 0.90,
             "excerpt": "Company policies apply to all employees worldwide unless superseded by regional addenda."
         }
     ]
