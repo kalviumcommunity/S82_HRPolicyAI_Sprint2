@@ -1,20 +1,248 @@
 {
-  "total_requests": 10,
-  "cache_hits": 4,
-  "cache_misses": 6,
-  "cache_hit_rate_percent": 40.0,
-  "total_tokens": 1793,
-  "prompt_tokens": 1300,
-  "completion_tokens": 493,
-  "total_cost_usd": 0.000818,
-  "total_cost_saved_usd": 0.00057,
-  "average_latency_ms": 49.03,
-  "cached_entries": 6,
+  "total_requests": 16,
+  "cache_hits": 6,
+  "cache_misses": 10,
+  "cache_hit_rate_percent": 37.5,
+  "total_tokens": 3149,
+  "prompt_tokens": 2104,
+  "completion_tokens": 1045,
+  "total_cost_usd": 0.001638,
+  "total_cost_saved_usd": 0.00098,
+  "average_latency_ms": 47.03,
+  "cached_entries": 1,
   "region_distribution": {
-    "India": 7,
+    "India": 13,
     "Global": 3
   },
   "recent_requests": [
+    {
+      "request_id": "req_b749ce02",
+      "timestamp": "2026-09-17T05:18:02.335794+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": true,
+      "latency_ms": 0.02,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.0,
+        "cost_saved_usd": 0.000205,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "request_id": "req_58063179",
+      "timestamp": "2026-09-17T05:18:02.333948+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": false,
+      "latency_ms": 65.67,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.000205,
+        "cost_saved_usd": 0.0,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "request_id": "req_f77888f3",
+      "timestamp": "2026-09-17T05:17:38.037853+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": true,
+      "latency_ms": 0.03,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.0,
+        "cost_saved_usd": 0.000205,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "request_id": "req_fcd2d072",
+      "timestamp": "2026-09-17T05:17:38.035777+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": false,
+      "latency_ms": 65.37,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.000205,
+        "cost_saved_usd": 0.0,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "request_id": "req_f9da87a9",
+      "timestamp": "2026-09-17T05:17:10.284253+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": false,
+      "latency_ms": 65.76,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.000205,
+        "cost_saved_usd": 0.0,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
+    {
+      "request_id": "req_1ed5c64f",
+      "timestamp": "2026-09-17T05:16:36.870221+00:00",
+      "region": "India",
+      "question": "How many days of annual privilege leave are employees in India entitled to?",
+      "answer_preview": "According to the **India Leave Policy 2026** [1], full-time regular employees in India are entitled to **18 days of Priv...",
+      "sources_count": 2,
+      "retrieved_sources": [
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec3_c1",
+          "section": "Section 3.1 - Annual Privilege Leave",
+          "page": 1,
+          "score": 0.94
+        },
+        {
+          "document": "India Leave Policy 2026",
+          "chunk_id": "in_leave_sec4_c2",
+          "section": "Section 4.2 - Casual & Sick Leave",
+          "page": 1,
+          "score": 0.78
+        }
+      ],
+      "cache_hit": false,
+      "latency_ms": 65.29,
+      "tokens": {
+        "prompt_tokens": 134,
+        "completion_tokens": 92,
+        "total_tokens": 226
+      },
+      "cost": {
+        "estimated_cost_usd": 0.000205,
+        "cost_saved_usd": 0.0,
+        "model": "gpt-3.5-turbo"
+      },
+      "status": "SUCCESS",
+      "error": null
+    },
     {
       "request_id": "req_62456919",
       "timestamp": "2026-09-17T04:55:06.685445+00:00",
@@ -340,5 +568,5 @@
       "error": null
     }
   ],
-  "generated_at": "2026-09-17T04:55:06.687370+00:00"
+  "generated_at": "2026-09-17T05:18:02.337595+00:00"
 }
